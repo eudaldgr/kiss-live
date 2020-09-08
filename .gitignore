@@ -1,0 +1,5 @@
+iso/
+rootfs/
+tmp/
+*.iso
+*.md5
