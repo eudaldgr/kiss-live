@@ -78,12 +78,7 @@ prepare_environment()
 
     # false positive
     # shellcheck disable=2015
-    [ "$debug" = 1 ] && set -x || \
-        if [ ! -z "$cachedir" ]; then
-            trap 'umount "$rootfsdir/root/.cache/kiss/sources"' EXIT INT
-        else
-            trap 'rm -rf $rootfsdir $isodir $tmpdir' EXIT INT
-        fi
+    [ "$debug" = 1 ] && set -x || trap 'rm -rf $rootfsdir $isodir $tmpdir' EXIT INT
 }
 
 prepare_rootfs()
@@ -210,10 +205,8 @@ make_iso()
 
     cp "$filesdir/unicode.pf2" "$isodir/boot/grub/fonts"
     echo "set prefix=/boot/grub" > "$isodir/boot/grub-early.cfg"
-    for ext in /usr/lib/grub/x86_64-efi/*.mod /usr/lib/grub/x86_64-efi/*.lst; do
-        cp -a "$ext" "$isodir/boot/grub/x86_64-efi" \
-            || panic "Failed copying efi files"
-    done
+    cp -a /usr/lib/grub/x86_64-efi "$isodir/boot/grub" \
+        || panic "Failed copying efi files"
 
     cp "$filesdir/grub.cfg" "$isodir/boot/grub/"
 
