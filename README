@@ -7,3 +7,11 @@ Live Repository
 ________________________________________________________________________________
 
 The Live repository for generate UNOFFICIAL images of KISS Linux.
+
+
+todo
+________________________________________________________________________________
+
+- [ ] unmount correctly cachedir when INT
+- [ ] sign iso files generated
+- [ ] solve tinyramfs hook mount -o ro
