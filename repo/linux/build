@@ -12,6 +12,12 @@ make kernelrelease > version
 modulesdir="$1/usr/lib/modules/$2"
 builddir="$modulesdir/build"
 
+# Make some things external modules
+sed -i 's/# CONFIG_OVERLAY_FS is not set/CONFIG_OVERLAY_FS=m/g' .config
+sed -i 's/CONFIG_BLK_DEV_SR=y/CONFIG_BLK_DEV_SR=m/g'            .config
+sed -i 's/CONFIG_CDROM=y/CONFIG_CDROM=m/g'                      .config
+sed -i 's/CONFIG_BLK_DEV_LOOP=y/CONFIG_BLK_DEV_LOOP=m/g'        .config
+
 # Make that bad boy!
 echo "Making linux-$2"
 make -j "$(nproc)"
@@ -56,4 +62,3 @@ echo "Installing kernel..."
 mkdir -p "$1/boot"
 install -Dm644 "arch/x86/boot/bzImage" "$1/boot/vmlinuz"
 install -Dm644 "System.map"            "$1/boot/System.map"
-install -Dm644 ".config"               "$1/boot/Config"
