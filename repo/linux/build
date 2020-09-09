@@ -1,0 +1,59 @@
+#!/bin/sh -e
+
+# Patch it
+patch -p1 < kernel-no-perl.patch
+
+# Set the kernel up for success!
+scripts/setlocalversion --save-scmversion
+make x86_64_defconfig
+make kernelrelease > version
+
+# Useful variables
+modulesdir="$1/usr/lib/modules/$2"
+builddir="$modulesdir/build"
+
+# Make that bad boy!
+echo "Making linux-$2"
+make -j "$(nproc)"
+
+echo "Installing modules..."
+make INSTALL_MOD_PATH="$1/usr" modules_install
+
+echo "Cleaning up..."
+rm "$modulesdir/build" "$modulesdir/source"
+
+echo "Copying files to build external modules..."
+install -Dt "$builddir"                 -m644 .config Makefile Module.symvers System.map version vmlinux
+install -Dt "$builddir/arch/x86"        -m644 arch/x86/Makefile
+install -Dt "$builddir/arch/x86/kernel" -m644 arch/x86/kernel/asm-offsets.s
+install -Dt "$builddir/kernel"          -m644 kernel/Makefile
+install -Dt "$builddir/drivers/md"      -m644 drivers/md/*.h
+install -Dt "$builddir/net/mac80211"    -m644 net/mac80211/*.h
+install -Dt "$builddir/tools/objtool"         tools/objtool/objtool
+
+cp -a scripts          "$builddir/scripts"
+cp -a include          "$builddir/include"
+cp -a arch/x86/include "$builddir/arch/x86/include"
+
+find . -name "Kconfig*" -exec install -Dm644 {} "$builddir/{}" \;
+
+chmod -Rc u=rwX,go=rX "$1"
+
+echo "Removing cruft..."
+rm   -r "$builddir/Documentation"
+find -L "$builddir" -type l             -exec rm -rf {} +
+find    "$builddir" -type f -name "*.o" -exec rm -rf {} +
+
+for arch in alpha,arc,arm,arm64,c6x,csky,h8300,hexagon,ia64,m68k,microblaze,mips,nds32,nios2,openrisc,parisc,powerpc,riscv,s390,sh,sparc,um,unicore32,xtensa; do
+    rm -rf "$arch"
+done
+
+echo "Laying trap..."
+mkdir -p "$1/usr/src"
+ln -sv "/usr/lib/modules/$2/build" "$1/usr/src/linux"
+
+echo "Installing kernel..."
+mkdir -p "$1/boot"
+install -Dm644 "arch/x86/boot/bzImage" "$1/boot/vmlinuz"
+install -Dm644 "System.map"            "$1/boot/System.map"
+install -Dm644 ".config"               "$1/boot/Config"
