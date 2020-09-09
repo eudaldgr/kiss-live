@@ -1,0 +1,271 @@
+#!/bin/sh -e
+#
+# script to build livecd iso for kisslinux
+
+print()
+{
+    printf "${2:-"\033[1;33m->\033[m"} \033[1;34m$1\033[m\n"
+}
+
+panic()
+{
+    print "${1:-unexpected error occurred}" \
+        "\033[1;31m!!\033[m" >&2
+    exit 1
+}
+
+chroot_exec()
+{
+    echo "$1 3>&-" | "$rootfsdir/bin/kiss-chroot" "${2:-$rootfsdir}" >/dev/null
+}
+
+usage()
+{
+    cat << EOF
+usage: ${0##*/} [options ...]
+       -b, --build   <file>           set config file path
+                                      default is ./build.cfg
+
+       -c, --cache   <dir>            set cache directory
+                                      default is inside chroot
+                                    
+       -o, --output  <name>           set livecd output path
+                                      default is kiss-live-\$ver
+                                    
+       -p, --package <pkg1 pkg2 ...>  set packages to install
+                                      default are <none>
+
+       -d, --debug                    enable debug mode
+       -h, --help                     show this help
+
+EOF
+}
+
+prepare_environment()
+{
+    while [ "$1" ]; do case "$1" in
+        -b | --build)
+            buildcfg="${2:?}"; shift 2
+        ;;
+        -c | --cache)
+            cachedir="${2:?}"; shift 2
+        ;;
+        -o | --output)
+            isolabel="${2:?}"; shift 2
+        ;;
+        -p | --package)
+            packages="${2:?}"; shift 2
+        ;;
+        -d | --debug)
+            debug=1; shift 1
+        ;;
+        -h | --help)
+            usage; exit 0
+        ;;
+        *)
+            printf "invalid option: %s\n\n" "$1"
+            usage; exit 1
+        ;;
+    esac; done
+
+    print "Preparing enviroment"
+
+    # false positive
+    # shellcheck disable=1090
+    . "${buildcfg:=./build.cfg}"
+
+    mkdir -p "$rootfsdir" "$isodir" "$tmpdir"
+
+    # false positive
+    # shellcheck disable=2015
+    [ "$debug" = 1 ] && set -x || \
+        if [ ! -z "$cachedir" ]; then
+            trap 'umount "$rootfsdir/root/.cache/kiss/sources"' EXIT INT
+        else
+            trap 'rm -rf $rootfsdir $isodir $tmpdir' EXIT INT
+        fi
+}
+
+prepare_rootfs()
+{
+    if [ ! -f "$tmpdir/$tar" ]; then
+        print "Downloading source"
+        wget "$down" -O "$tmpdir/$tar" || panic "Failed downloading source"
+    fi
+
+    print "Extracting source"
+    tar xf "$tmpdir/$tar" -C "$rootfsdir" || panic "Failed extracting source"
+
+    if [ ! -z "$cachedir" ]; then
+        print "Mounting cache dir"
+        mkdir -p "$rootfsdir/root/.cache/kiss/sources"
+        mount --bind "$cachedir" "$rootfsdir/root/.cache/kiss/sources"
+    fi
+
+    print "Adding repos"
+    chroot_exec "git clone $url/repo      /var/db/kiss/repo/"
+    chroot_exec "git clone $url/community /var/db/kiss/community/"
+    cp -r "$repodir" "$rootfsdir/var/db/kiss/live"
+    chroot_exec "echo 'export KISS_PATH=/var/db/kiss/repo/core' \
+        >> /etc/profile"
+
+    chroot_exec "echo 'KISS_PATH=\$KISS_PATH:/var/db/kiss/repo/extra' \
+        >> /etc/profile"
+
+    chroot_exec "echo 'KISS_PATH=\$KISS_PATH:/var/db/kiss/repo/xorg' \
+        >> /etc/profile"
+
+    chroot_exec "echo 'KISS_PATH=\$KISS_PATH:/var/db/kiss/community/community' \
+        >> /etc/profile"
+
+    chroot_exec "echo 'KISS_PATH=\$KISS_PATH:/var/db/kiss/live' \
+        >> /etc/profile"
+
+    print "Updating system"
+    chroot_exec "KISS_PROMPT=0 kiss u" || panic "Failed updating system"
+
+    print "Updating system, again"
+    chroot_exec "KISS_PROMPT=0 kiss u" || panic "Failed updating system, again"
+
+    [ "$packages" ] && {
+        print "Installing additional packages"
+        chroot_exec "KISS_PROMPT=0 kiss b $(echo $packages | tr ',' ' ') && \
+            kiss i $(echo $packages | tr ',' ' ')" \
+            || panic "Failed installing additional packages"
+    }
+
+    print "Installing packages required by iso"
+    chroot_exec "KISS_PROMPT=0 kiss b $base_pkgs && kiss i $base_pkgs" \
+        || panic "Failed installing iso packages"
+
+    print "Enabling services"
+    chroot_exec "ln -sf /etc/udevd  /var/service" \
+        || panic "Failed enabling services"
+
+    chroot_exec "ln -sf /usr/share/dhcpcd/hooks/10-wpa_supplicant \
+        /usr/lib/dhcpcd/dhcpcd-hooks/" \
+        || panic "Failed enabling services"
+
+    chroot_exec "ln -sf /etc/dhcpcd /var/service" \
+        || panic "Failed enabling services"
+
+    ## to-do: remove orphans
+    
+    if [ ! -z "$cachedir" ]; then
+        print "Unmounting cache dir"
+        umount "$rootfsdir/root/.cache/kiss/sources"
+    fi
+}
+
+make_iso()
+{
+    print "Preparing isolinux files"
+    for dir in kiss isolinux boot; do
+        mkdir -p "$isodir/$dir"
+    done
+
+    for file in $isolinux_files; do
+        cp "$filesdir/$file" "$isodir/isolinux"
+    done
+    
+    print "Squashing root filesystem"
+    mksquashfs \
+        "$rootfsdir" \
+        "$isodir/kiss/kiss-rootfs.sfs" \
+        -b 1048576 \
+        -comp zstd \
+        -e "$rootfsdir/root/.cache" \
+        -e "$rootfsdir/var/db/kiss/repo" \
+        -e "$rootfsdir/var/db/kiss/community" \
+        -e "$rootfsdir/var/db/kiss/live" \
+        -e "$rootfsdir/tmp"/* \
+        2>/dev/null \
+        || panic "Failed create sfs root filesystem"
+            
+    cp "$rootfsdir/boot/vmlinuz" "$isodir/boot/vmlinuz" \
+        || panic "Failed copying kernel"
+
+    print "Creating initrd"
+    kernver=$(file $rootfsdir/boot/vmlinuz | cut -d ' ' -f9)
+    mkdir -p "$rootfsdir/etc/tinyramfs"
+    cp -r "$hooksdir" "$rootfsdir/usr/share/tinyramfs/hooks/live"
+    sed "s/@ISOLABEL@/$isolabel/g" "$filesdir/config" > \
+        "$rootfsdir/etc/tinyramfs/config" \
+        || panic "Failed preparing tinyramfs"
+
+    sed -i "s/@ISOLABEL@/$isolabel/g" \
+        "$rootfsdir/usr/share/tinyramfs/hooks/live/live.init" \
+        || panic "Failed preparing tinyramfs"
+
+    chroot_exec "tinyramfs -k $kernver -o /boot/initrd" \
+        || panic "Failed create initramfs"
+
+    cp "$rootfsdir/boot/initrd" "$isodir/boot/initrd" \
+        || panic "Failed copying initrd"
+    
+    print "Setup UEFI mode"
+    for dir in grub/fonts grub/x86_64-efi EFI; do
+        mkdir -p "$isodir/boot/$dir"
+    done
+
+    cp "$filesdir/unicode.pf2" "$isodir/boot/grub/fonts"
+    echo "set prefix=/boot/grub" > "$isodir/boot/grub-early.cfg"
+    for ext in /usr/lib/grub/x86_64-efi/*.mod /usr/lib/grub/x86_64-efi/*.lst; do
+        cp -a "$ext" "$isodir/boot/grub/x86_64-efi" \
+            || panic "Failed copying efi files"
+    done
+
+    cp "$filesdir/grub.cfg" "$isodir/boot/grub/"
+
+    grub-mkimage \
+        -c "$isodir/boot/grub-early.cfg" \
+        -o "$isodir/boot/EFI/bootx64.efi" \
+        -O x86_64-efi \
+        -p "" iso9660 normal search search_fs_file
+
+    dd if=/dev/zero of="$isodir/boot/efiboot.img" count=4096
+    mkdosfs -n KISS-UEFI "$isodir/boot/efiboot.img" \
+        || panic "Failed create mkdosfs image"
+
+    mkdir -p "$isodir/boot/efiboot"
+    mount -o loop "$isodir/boot/efiboot.img" "$isodir/boot/efiboot" \
+        || panic "Failed mount efiboot.img"
+
+    mkdir -p "$isodir/boot/efiboot/EFI/boot"
+    cp "$isodir/boot/EFI/bootx64.efi" "$isodir/boot/efiboot/EFI/boot"
+    umount "$isodir/boot/efiboot"
+    rm -rf "$isodir/boot/efiboot"
+
+    print "Creating iso"
+    rm -f "$isolabel.iso" "$isolabel.md5"
+    xorriso \
+        -as mkisofs \
+        -isohybrid-mbr "$filesdir/isohdpfx.bin" \
+        -c isolinux/boot.cat \
+        -b isolinux/isolinux.bin \
+        -no-emul-boot \
+        -boot-load-size 4 \
+        -boot-info-table \
+        -eltorito-alt-boot \
+        -e boot/efiboot.img \
+        -no-emul-boot \
+        -isohybrid-gpt-basdat \
+        -volid "$isolabel" \
+        -o "$here/$isolabel.iso" "$isodir" \
+        || panic "Failed creating iso"
+
+    print "Generate md5sum"
+    md5sum "$here/$isolabel.iso" > "$here/$isolabel.md5"
+}
+
+# int main()
+{
+    [ "$(id -u)" = 0 ] || panic "must be run as root"
+
+    # enable exit on error and disable globbing
+    set -ef
+
+    prepare_environment "$@"
+    prepare_rootfs
+    make_iso
+}
