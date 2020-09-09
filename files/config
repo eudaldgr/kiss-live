@@ -1,0 +1,3 @@
+hooks="eudev live"
+root=/dev/disk/by-label/@ISOLABEL@
+root_type=squashfs
