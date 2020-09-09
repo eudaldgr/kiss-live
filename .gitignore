@@ -3,3 +3,4 @@ rootfs/
 tmp/
 *.iso
 *.md5
+*.img
