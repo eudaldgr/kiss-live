@@ -146,6 +146,16 @@ prepare_rootfs()
     chroot_exec "ln -sf /etc/dhcpcd /var/service" \
         || panic "Failed enabling services"
 
+    print "Swap into util-linux mount"
+    chroot_exec "kiss a util-linux /usr/bin/mount"
+
+    print "Modify tinyramfs to allow overlayfs"
+    chroot_exec "sed -i 's/type}\" \"\$device\"/type}\"/g' \
+        /usr/share/tinyramfs/init"
+
+    print "Enable auto-login"
+    chroot_exec "sed -i 's/getty 38400 tty1/login -f root/g' /etc/inittab"
+
     ## to-do: remove orphans
     
     if [ ! -z "$cachedir" ]; then
