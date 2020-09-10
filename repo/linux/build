@@ -47,7 +47,7 @@ rm   -r "$builddir/Documentation"
 find -L "$builddir" -type l             -exec rm -rf {} +
 find    "$builddir" -type f -name "*.o" -exec rm -rf {} +
 
-for arch in alpha,arc,arm,arm64,c6x,csky,h8300,hexagon,ia64,m68k,microblaze,mips,nds32,nios2,openrisc,parisc,powerpc,riscv,s390,sh,sparc,um,unicore32,xtensa; do
+for arch in alpha arc arm arm64 c6x csky h8300 hexagon ia64 m68k microblaze mips nds32 nios2 openrisc parisc powerpc riscv s390 sh sparc um unicore32 xtensa; do
     rm -rf "$arch"
 done
 
