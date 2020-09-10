@@ -15,4 +15,4 @@ qemu-system-x86_64 \
     -device virtio-rng-pci \
     -monitor stdio \
     -boot d \
-    -cdrom $@
+    -cdrom "$@"
