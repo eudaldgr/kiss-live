@@ -1,0 +1,11 @@
+baseinit
+dhcpcd
+dosfstools
+e2fsprogs
+efibootmgr     make
+eudev
+grub           make
+linux
+tinyramfs
+util-linux     make
+wpa_supplicant
