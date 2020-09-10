@@ -1,17 +1,19 @@
-#!/bin/sh -e
+#!/bin/sh
 #
 # script to build livecd iso for kisslinux
+#
+# false positive
+# shellcheck disable=2154
 
 print()
 {
-    printf "${2:-"\033[1;33m->\033[m"} \033[1;34m$1\033[m\n"
+    printf "%b \033[1;34m%s\033[m\n" "${2:-"\033[1;33m->\033[m"}" "$1"
 }
 
 panic()
 {
     print "${1:-unexpected error occurred}" \
-        "\033[1;31m!!\033[m" >&2
-    exit 1
+        "\033[1;31m!!\033[m" >&2; exit 1
 }
 
 chroot_exec()
@@ -124,8 +126,8 @@ prepare_rootfs()
 
     [ "$packages" ] && {
         print "Installing additional packages"
-        chroot_exec "KISS_PROMPT=0 kiss b $(echo $packages | tr ',' ' ') && \
-            kiss i $(echo $packages | tr ',' ' ')" \
+        chroot_exec "KISS_PROMPT=0 kiss b $(echo "$packages" | tr ',' ' ') && \
+            kiss i $(echo "$packages" | tr ',' ' ')" \
             || panic "Failed installing additional packages"
     }
 
@@ -181,7 +183,7 @@ make_iso()
         || panic "Failed copying kernel"
 
     print "Creating initrd"
-    kernver=$(file $rootfsdir/boot/vmlinuz | cut -d ' ' -f9)
+    kernver=$(file "$rootfsdir/boot/vmlinuz" | cut -d ' ' -f9)
     mkdir -p "$rootfsdir/etc/tinyramfs"
     cp -r "$hooksdir" "$rootfsdir/usr/share/tinyramfs/hooks/live"
     sed "s/@ISOLABEL@/$isolabel/g" "$filesdir/config" > \
