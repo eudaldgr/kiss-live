@@ -249,7 +249,7 @@ make_iso()
     rm -rf "$isodir/boot/efiboot"
 
     print "Creating iso"
-    rm -f "$isolabel.iso" "$isolabel.md5" "$isolabel.sha1"
+    rm -f "$isolabel.iso" "$isolabel.iso.md5" "$isolabel.iso.sha1"
     xorriso \
         -as mkisofs \
         -isohybrid-mbr "$filesdir/isohdpfx.bin" \
@@ -267,10 +267,10 @@ make_iso()
         || panic "Failed creating iso"
 
     print "Generate md5sum"
-    md5sum "$isolabel.iso" > "$here/$isolabel.md5"
+    md5sum "$isolabel.iso" > "$here/$isolabel.iso.md5"
 
     print "Generate sha1sum"
-    sha1sum "$isolabel.iso" > "$here/$isolabel.sha1"
+    sha1sum "$isolabel.iso" > "$here/$isolabel.iso.sha1"
 }
 
 # int main()
