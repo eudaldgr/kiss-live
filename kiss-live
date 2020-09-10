@@ -118,6 +118,13 @@ prepare_rootfs()
     chroot_exec "echo 'KISS_PATH=\$KISS_PATH:/var/db/kiss/live' \
         >> /etc/profile"
 
+    print "Modify compiler options"
+    chroot_exec "export CFLAGS=\"-march=x86-64 -mtune=generic -pipe -Os\" \
+        >> /etc/profile"
+
+    chroot_exec "export CXXFLAGS=\"\$CFLAGS\" >> /etc/profile"
+    chroot_exec "export MAKEFLAGS=\"-j4\" >> /etc/profile"
+
     print "Updating system"
     chroot_exec "KISS_PROMPT=0 kiss u" || panic "Failed updating system"
 
@@ -260,7 +267,10 @@ make_iso()
         || panic "Failed creating iso"
 
     print "Generate md5sum"
-    md5sum "$here/$isolabel.iso" > "$here/$isolabel.md5"
+    md5sum "$isolabel.iso" > "$here/$isolabel.md5"
+
+    print "Generate sha1sum"
+    sha1sum "$isolabel.iso" > "$here/$isolabel.sha1"
 }
 
 # int main()
