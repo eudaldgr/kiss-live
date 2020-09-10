@@ -1,0 +1,16 @@
+#!/bin/sh
+
+for _mod in /usr/lib/modules/$kernel/kernel/drivers/cdrom/cdrom.ko \
+    /usr/lib/modules/$kernel/kernel/drivers/block/loop.ko \
+    /usr/lib/modules/$kernel/kernel/fs/overlayfs/overlay.ko\
+    /usr/lib/modules/$kernel/kernel/lib/xxhash.ko\
+    /usr/lib/modules/$kernel/kernel/lib/zstd/zstd_decompress.ko\
+    /usr/lib/modules/$kernel/kernel/fs/squashfs/squashfs.ko; do
+        copy_module "$_mod"
+done
+
+copy_file /usr/lib/udev/rules.d/60-cdrom_id.rules "$srcdir" 644 0
+
+for _bin in awk /usr/lib/udev/cdrom_id blockdev losetup; do
+    copy_binary "$_bin"
+done

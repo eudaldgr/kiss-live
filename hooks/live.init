@@ -1,0 +1,36 @@
+#!/bin/sh
+
+modprobe -a cdrom loop overlay xxhash zstd_decompress squashfs 
+
+media=/dev/disk/by-label/@ISOLABEL@
+
+medium=/run/initramfs/medium
+system=/run/initramfs/system
+writedir=/run/initramfs/overlayfs/write
+workdir=/run/initramfs/overlayfs/work
+
+sfsimg=/run/initramfs/medium/kiss/kiss-rootfs.sfs
+
+mkdir -p "$medium" "$system" "$writedir" "$workdir"
+
+print "mounting media to $medium"
+mount -o ro "$media" "$medium" || panic
+
+if [ "$ram" = y ]; then
+    print "mounting /run/initramfs/ram to ram"
+    mkdir -p /run/initramfs/ram
+    mount -t tmpfs -o "size=75%",mode=0755 ram /run/initramfs/ram || panic
+    print "copying squashfs img to /run/initramfs/ram"
+    cp "$sfsimg" /run/initramfs/ram/ || panic
+    sfsimg=/run/initramfs/ram/kiss-rootfs.sfs
+fi
+
+losetup -f -r $sfsimg
+sfsdev=$(losetup -a | awk '/kiss-rootfs.sfs/{print $1}')
+sfsdev=${sfsdev%:}
+
+print "mounting squashfs img to $system..."
+mount -t squashfs -o defaults,ro "$sfsdev" "$system" || panic
+
+# overlayfs mount    
+print "mounting overlays to /mnt/root"
