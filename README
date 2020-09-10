@@ -16,3 +16,4 @@ ________________________________________________________________________________
 - [ ] sign iso files generated
 - [x] solve tinyramfs hook mount -o ro
 - [ ] solve init to ram disk
+- [ ] slim down the iso filesize
