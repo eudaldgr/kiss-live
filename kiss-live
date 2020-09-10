@@ -249,7 +249,7 @@ make_iso()
     rm -rf "$isodir/boot/efiboot"
 
     print "Creating iso"
-    rm -f "$isolabel.iso" "$isolabel.md5"
+    rm -f "$isolabel.iso" "$isolabel.md5" "$isolabel.sha1"
     xorriso \
         -as mkisofs \
         -isohybrid-mbr "$filesdir/isohdpfx.bin" \
