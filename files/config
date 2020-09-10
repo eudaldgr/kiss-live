@@ -1,3 +1,4 @@
 hooks="eudev live"
 root=/dev/disk/by-label/@ISOLABEL@
-root_type=squashfs
+root_type="overlay overlay"
+root_opts="upperdir=/run/initramfs/overlayfs/write,lowerdir=/run/initramfs/system,workdir=/run/initramfs/overlayfs/work"
