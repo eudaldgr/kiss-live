@@ -12,11 +12,8 @@ make kernelrelease > version
 modulesdir="$1/usr/lib/modules/$2"
 builddir="$modulesdir/build"
 
-# Make some things external modules
-sed -i 's/# CONFIG_OVERLAY_FS is not set/CONFIG_OVERLAY_FS=m/g' .config
-sed -i 's/CONFIG_BLK_DEV_SR=y/CONFIG_BLK_DEV_SR=m/g'            .config
-sed -i 's/CONFIG_CDROM=y/CONFIG_CDROM=m/g'                      .config
-sed -i 's/CONFIG_BLK_DEV_LOOP=y/CONFIG_BLK_DEV_LOOP=m/g'        .config
+# Make some changes to the config
+patch -p1 < kernel-config.patch
 
 # Make that bad boy!
 echo "Making linux-$2"
