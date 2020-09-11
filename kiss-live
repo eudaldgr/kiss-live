@@ -156,10 +156,6 @@ prepare_rootfs()
     print "Swap into util-linux mount"
     chroot_exec "kiss a util-linux /usr/bin/mount"
 
-    print "Modify tinyramfs to allow overlayfs"
-    chroot_exec "sed -i 's/type}\" \"\$device\"/type}\"/g' \
-        /usr/share/tinyramfs/init"
-
     print "Enable auto-login"
     chroot_exec "sed -i 's/getty 38400 tty1/login -f root/g' /etc/inittab"
 
@@ -202,10 +198,8 @@ make_iso()
     print "Creating initrd"
     kernver=$(file "$rootfsdir/boot/vmlinuz" | cut -d ' ' -f9)
     mkdir -p "$rootfsdir/etc/tinyramfs"
-    cp -r "$hooksdir" "$rootfsdir/usr/share/tinyramfs/hooks/live"
-    sed "s/@ISOLABEL@/$isolabel/g" "$filesdir/config" > \
-        "$rootfsdir/etc/tinyramfs/config" \
-        || panic "Failed preparing tinyramfs"
+    cp -r "$hooksdir"        "$rootfsdir/usr/share/tinyramfs/hooks/live"
+    cp -r "$filesdir/config" "$rootfsdir/etc/tinyramfs/config"
 
     sed -i "s/@ISOLABEL@/$isolabel/g" \
         "$rootfsdir/usr/share/tinyramfs/hooks/live/live.init" \
