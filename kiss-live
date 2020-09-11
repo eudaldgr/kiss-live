@@ -139,7 +139,7 @@ prepare_rootfs()
     }
 
     print "Installing packages required by iso"
-    chroot_exec "KISS_PROMPT=0 kiss b $base_pkgs && kiss i $base_pkgs" \
+    chroot_exec "KISS_PROMPT=0 kiss b metapkg && kiss i metapkg" \
         || panic "Failed installing iso packages"
 
     print "Enabling services"
