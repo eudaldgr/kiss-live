@@ -2,9 +2,7 @@ baseinit
 dhcpcd
 dosfstools
 e2fsprogs
-efibootmgr     make
 eudev
-grub           make
 linux
 tinyramfs
 util-linux     make
