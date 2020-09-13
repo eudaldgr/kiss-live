@@ -1,7 +1,5 @@
 baseinit
 dhcpcd
-dosfstools
-e2fsprogs
 eudev
 linux
 tinyramfs
