@@ -148,7 +148,7 @@ prepare_rootfs()
     
     if [ ! -z "$cachedir" ]; then
         print "Unmounting cache dir"
-        umount "$rootfsdir/root/.cache/kiss/sources"
+        umount "$rootfsdir/root/.cache/kiss"
     fi
 }
 
