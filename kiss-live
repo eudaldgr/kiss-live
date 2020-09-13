@@ -99,7 +99,7 @@ prepare_rootfs()
         mount --bind "$cachedir" "$rootfsdir/root/.cache/kiss/sources"
     fi
 
-    print "Preparing rootfs"
+    print "Preparing rootfs enviroment"
     cp -r "$repodir" "$rootfsdir/var/db/kiss/live"
 
     chroot_exec "
@@ -114,7 +114,7 @@ prepare_rootfs()
             echo 'export CFLAGS=\"-march=x86-64 -mtune=generic -pipe -Os\"'
             echo 'export CXXFLAGS=\"\$CFLAGS\"'
             echo 'export MAKEFLAGS=\"-j4\"'
-        } >> /etc/profile"
+        } >> /etc/profile" || panic "Failed preparing rootfs enviroment"
 
     print "Updating system"
     chroot_exec "KISS_PROMPT=0 kiss u ; kiss u" || panic "Failed updating system"
