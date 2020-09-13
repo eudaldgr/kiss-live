@@ -95,8 +95,8 @@ prepare_rootfs()
 
     if [ ! -z "$cachedir" ]; then
         print "Mounting cache dir"
-        mkdir -p "$rootfsdir/root/.cache/kiss/sources"
-        mount --bind "$cachedir" "$rootfsdir/root/.cache/kiss/sources"
+        mkdir -p "$rootfsdir/root/.cache/kiss"
+        mount --bind "$cachedir" "$rootfsdir/root/.cache/kiss"
     fi
 
     print "Preparing rootfs enviroment"
