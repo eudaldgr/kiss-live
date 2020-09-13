@@ -176,7 +176,7 @@ make_iso()
         "$isodir/kiss/kiss-rootfs.sfs" \
         -comp xz \
         -Xbcj x86 \
-        -e "$rootfsdir/etc/profile.d" \
+        -e "$rootfsdir/etc/profile.d"/* \
         -e "$rootfsdir/root/.cache" \
         -e "$rootfsdir/tmp"/* \
         -e "$rootfsdir/var/db/kiss/repo" \
@@ -191,8 +191,8 @@ make_iso()
     print "Creating initrd"
     kernver=$(file "$rootfsdir/boot/vmlinuz" | cut -d ' ' -f9)
     mkdir -p "$rootfsdir/etc/tinyramfs"
-    cp -r "$hooksdir"        "$rootfsdir/usr/share/tinyramfs/hooks/live"
-    cp -r "$filesdir/config" "$rootfsdir/etc/tinyramfs/config"
+    cp -r "$hooksdir/tinyramfs" "$rootfsdir/usr/share/tinyramfs/hooks/live"
+    cp -r "$filesdir/config"    "$rootfsdir/etc/tinyramfs/config"
 
     sed -i "s/@ISOLABEL@/$isolabel/g" \
         "$rootfsdir/usr/share/tinyramfs/hooks/live/live.init" \

@@ -3,6 +3,6 @@
 # false positive
 # shellcheck disable=2154
 
-if [ "$ram" = y ]; then
+if [ "$ram" ]; then
     umount /run/initramfs/medium
 fi
