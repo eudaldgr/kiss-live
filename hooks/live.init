@@ -3,7 +3,7 @@
 # false positive
 # shellcheck disable=2154
 
-modprobe -a cdrom loop overlay xxhash zstd_decompress squashfs 
+modprobe -a cdrom loop overlay squashfs 
 
 media=/dev/disk/by-label/@ISOLABEL@
 
