@@ -12,8 +12,6 @@ for _mod in "$cdrom" "$loop" "$overlay" "$squash"; do
     copy_module "$_mod"
 done
 
-copy_file /usr/lib/udev/rules.d/60-cdrom_id.rules "$srcdir" 644 0
-
-for _bin in awk /usr/lib/udev/cdrom_id blockdev losetup; do
+for _bin in awk blockdev losetup; do
     copy_binary "$_bin"
 done
