@@ -134,9 +134,9 @@ prepare_rootfs()
 
     print "Enabling services"
     chroot_exec "
-        ln -sf /etc/udevd  /var/service
+        ln -sf /etc/sv/udevd  /var/service
         ln -sf /usr/share/dhcpcd/hooks/10-wpa_supplicant /usr/lib/dhcpcd/dhcpcd-hooks/
-        ln -sf /etc/dhcpcd /var/service" || panic "Failed enabling services"
+        ln -sf /etc/sv/dhcpcd /var/service" || panic "Failed enabling services"
 
     print "Swap into util-linux mount"
     chroot_exec "kiss a util-linux /usr/bin/mount"
