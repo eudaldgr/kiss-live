@@ -1,4 +1,4 @@
 hooks="eudev live"
 root=overlay
-root_type=overlay
+root_type="$root"
 root_opts="upperdir=/run/initramfs/overlayfs/write,lowerdir=/run/initramfs/system,workdir=/run/initramfs/overlayfs/work"
