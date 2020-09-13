@@ -100,7 +100,8 @@ prepare_rootfs()
     fi
 
     print "Preparing rootfs enviroment"
-    cp -r "$repodir" "$rootfsdir/var/db/kiss/live"
+    cp -r "$repodir"             "$rootfsdir/var/db/kiss/live"
+    cp -r "$hooksdir/kiss/hooks" "$rootfsdir/root/.cache/hooks"
 
     chroot_exec "
         git clone $url/repo      /var/db/kiss/repo/
@@ -108,6 +109,7 @@ prepare_rootfs()
         {
             echo 'export KISS_SU=su'
             echo 'export KISS_PROMPT=0'
+            echo 'export KISS_HOOK=/root/.cache/hooks'
             echo 'export KISS_PATH=/var/db/kiss/repo/core'
             echo 'KISS_PATH=\$KISS_PATH:/var/db/kiss/repo/extra'
             echo 'KISS_PATH=\$KISS_PATH:/var/db/kiss/repo/xorg'
@@ -134,16 +136,8 @@ prepare_rootfs()
 
     print "Enabling services"
     chroot_exec "
-        ln -sf /etc/sv/mdev  /var/service
         ln -sf /usr/share/dhcpcd/hooks/10-wpa_supplicant /usr/lib/dhcpcd/dhcpcd-hooks/
         ln -sf /etc/sv/dhcpcd /var/service" || panic "Failed enabling services"
-
-    print "Hotplugging support"
-    chroot_exec "
-        {
-            echo 'SUBSYSTEM=drm;.*   root:video 660 *env > /tmp/.libudev-zero/uevent.\$\$'
-            echo 'SUBSYSTEM=input;.* root:input 660 *env > /tmp/.libudev-zero/uevent.\$\$'
-        } >> /etc/mdev.conf" || panic "Failed to add hotplugging"
 
     print "Swap into util-linux mount"
     chroot_exec "kiss a util-linux /usr/bin/mount"

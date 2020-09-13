@@ -1,6 +1,16 @@
 --- a/.config
 +++ b/.config
-@@ -1358,10 +1358,10 @@
+@@ -1307,7 +1307,8 @@
+ #
+ # Generic Driver Options
+ #
+-# CONFIG_UEVENT_HELPER is not set
++CONFIG_UEVENT_HELPER=y
++CONFIG_UEVENT_HELPER_PATH=""
+ CONFIG_DEVTMPFS=y
+ CONFIG_DEVTMPFS_MOUNT=y
+ CONFIG_STANDALONE=y
+@@ -1358,10 +1359,10 @@
  CONFIG_BLK_DEV=y
  # CONFIG_BLK_DEV_NULL_BLK is not set
  # CONFIG_BLK_DEV_FD is not set
@@ -13,7 +23,7 @@
  CONFIG_BLK_DEV_LOOP_MIN_COUNT=8
  # CONFIG_BLK_DEV_CRYPTOLOOP is not set
  # CONFIG_BLK_DEV_DRBD is not set
-@@ -1466,7 +1466,7 @@
+@@ -1466,7 +1467,7 @@
  #
  CONFIG_BLK_DEV_SD=y
  # CONFIG_CHR_DEV_ST is not set
@@ -22,7 +32,7 @@
  CONFIG_CHR_DEV_SG=y
  # CONFIG_CHR_DEV_SCH is not set
  CONFIG_SCSI_CONSTANTS=y
-@@ -3911,7 +3911,12 @@
+@@ -3911,7 +3912,12 @@
  CONFIG_AUTOFS4_FS=y
  CONFIG_AUTOFS_FS=y
  # CONFIG_FUSE_FS is not set
@@ -36,7 +46,7 @@
  
  #
  # Caches
-@@ -3976,7 +3981,21 @@
+@@ -3976,7 +3982,21 @@
  # CONFIG_BFS_FS is not set
  # CONFIG_EFS_FS is not set
  # CONFIG_CRAMFS is not set
