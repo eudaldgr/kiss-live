@@ -106,6 +106,8 @@ prepare_rootfs()
         git clone $url/repo      /var/db/kiss/repo/
         git clone $url/community /var/db/kiss/community/
         {
+            echo 'export KISS_SU=su'
+            echo 'export KISS_PROMPT=0'
             echo 'export KISS_PATH=/var/db/kiss/repo/core'
             echo 'KISS_PATH=\$KISS_PATH:/var/db/kiss/repo/extra'
             echo 'KISS_PATH=\$KISS_PATH:/var/db/kiss/repo/xorg'
@@ -114,20 +116,20 @@ prepare_rootfs()
             echo 'export CFLAGS=\"-march=x86-64 -mtune=generic -pipe -Os\"'
             echo 'export CXXFLAGS=\"\$CFLAGS\"'
             echo 'export MAKEFLAGS=\"-j4\"'
-        } >> /etc/profile" || panic "Failed preparing rootfs enviroment"
+        } >> /etc/profile.d/kiss-live.sh" || panic "Failed preparing rootfs enviroment"
 
     print "Updating system"
-    chroot_exec "KISS_PROMPT=0 kiss u ; kiss u" || panic "Failed updating system"
+    chroot_exec "kiss u && kiss u" || panic "Failed updating system"
 
     [ "$packages" ] && {
         print "Installing additional packages"
-        chroot_exec "KISS_PROMPT=0 kiss b $(echo "$packages" | tr ',' ' ') && \
+        chroot_exec "kiss b $(echo "$packages" | tr ',' ' ') && \
             kiss i $(echo "$packages" | tr ',' ' ')" \
             || panic "Failed installing additional packages"
     }
 
     print "Installing packages required by iso"
-    chroot_exec "KISS_PROMPT=0 kiss b metapkg && kiss i metapkg" \
+    chroot_exec "kiss b metapkg && kiss i metapkg" \
         || panic "Failed installing iso packages"
 
     print "Enabling services"
