@@ -169,11 +169,12 @@ make_iso()
         "$isodir/kiss/kiss-rootfs.sfs" \
         -comp xz \
         -Xbcj x86 \
+        -e "$rootfsdir/etc/profile.d" \
         -e "$rootfsdir/root/.cache" \
+        -e "$rootfsdir/tmp"/* \
         -e "$rootfsdir/var/db/kiss/repo" \
         -e "$rootfsdir/var/db/kiss/community" \
         -e "$rootfsdir/var/db/kiss/live" \
-        -e "$rootfsdir/tmp"/* \
         2>/dev/null \
         || panic "Failed create sfs root filesystem"
             
