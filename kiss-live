@@ -191,7 +191,7 @@ make_iso()
         "$rootfsdir/usr/share/tinyramfs/hooks/live/live.init" \
         || panic "Failed preparing tinyramfs"
 
-    chroot_exec "tinyramfs -k $kernver -o /boot/initrd" \
+    chroot_exec "debug=$debug tinyramfs -k $kernver -o /boot/initrd" \
         || panic "Failed create initramfs"
 
     cp "$rootfsdir/boot/initrd" "$isodir/boot/initrd" \
