@@ -35,5 +35,4 @@ sfsdev=${sfsdev%:}
 print "mounting squashfs img to $system..."
 mount -t squashfs -o defaults,ro "$sfsdev" "$system" || panic
 
-# overlayfs mount    
 print "mounting overlays to /mnt/root"
