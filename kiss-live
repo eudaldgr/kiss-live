@@ -117,10 +117,7 @@ prepare_rootfs()
         } >> /etc/profile"
 
     print "Updating system"
-    chroot_exec "KISS_PROMPT=0 kiss u" || panic "Failed updating system"
-
-    print "Updating system, again"
-    chroot_exec "KISS_PROMPT=0 kiss u" || panic "Failed updating system, again"
+    chroot_exec "KISS_PROMPT=0 kiss u ; kiss u" || panic "Failed updating system"
 
     [ "$packages" ] && {
         print "Installing additional packages"
