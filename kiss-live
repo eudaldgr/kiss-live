@@ -99,31 +99,22 @@ prepare_rootfs()
         mount --bind "$cachedir" "$rootfsdir/root/.cache/kiss/sources"
     fi
 
-    print "Adding repos"
-    chroot_exec "git clone $url/repo      /var/db/kiss/repo/"
-    chroot_exec "git clone $url/community /var/db/kiss/community/"
+    print "Preparing rootfs"
     cp -r "$repodir" "$rootfsdir/var/db/kiss/live"
-    chroot_exec "echo 'export KISS_PATH=/var/db/kiss/repo/core' \
-        >> /etc/profile"
 
-    chroot_exec "echo 'KISS_PATH=\$KISS_PATH:/var/db/kiss/repo/extra' \
-        >> /etc/profile"
-
-    chroot_exec "echo 'KISS_PATH=\$KISS_PATH:/var/db/kiss/repo/xorg' \
-        >> /etc/profile"
-
-    chroot_exec "echo 'KISS_PATH=\$KISS_PATH:/var/db/kiss/community/community' \
-        >> /etc/profile"
-
-    chroot_exec "echo 'KISS_PATH=\$KISS_PATH:/var/db/kiss/live' \
-        >> /etc/profile"
-
-    print "Modify compiler options"
-    chroot_exec "export CFLAGS=\"-march=x86-64 -mtune=generic -pipe -Os\" \
-        >> /etc/profile"
-
-    chroot_exec "export CXXFLAGS=\"\$CFLAGS\" >> /etc/profile"
-    chroot_exec "export MAKEFLAGS=\"-j4\" >> /etc/profile"
+    chroot_exec "
+        git clone $url/repo      /var/db/kiss/repo/
+        git clone $url/community /var/db/kiss/community/
+        {
+            echo 'export KISS_PATH=/var/db/kiss/repo/core'
+            echo 'KISS_PATH=\$KISS_PATH:/var/db/kiss/repo/extra'
+            echo 'KISS_PATH=\$KISS_PATH:/var/db/kiss/repo/xorg'
+            echo 'KISS_PATH=\$KISS_PATH:/var/db/kiss/community/community'
+            echo 'KISS_PATH=\$KISS_PATH:/var/db/kiss/live'
+            echo 'export CFLAGS=\"-march=x86-64 -mtune=generic -pipe -Os\"'
+            echo 'export CXXFLAGS=\"\$CFLAGS\"'
+            echo 'export MAKEFLAGS=\"-j4\"'
+        } >> /etc/profile"
 
     print "Updating system"
     chroot_exec "KISS_PROMPT=0 kiss u" || panic "Failed updating system"
