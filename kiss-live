@@ -167,8 +167,8 @@ make_iso()
     mksquashfs \
         "$rootfsdir" \
         "$isodir/kiss/kiss-rootfs.sfs" \
-        -b 1048576 \
-        -comp zstd \
+        -comp xz \
+        -Xbcj x86 \
         -e "$rootfsdir/root/.cache" \
         -e "$rootfsdir/var/db/kiss/repo" \
         -e "$rootfsdir/var/db/kiss/community" \
