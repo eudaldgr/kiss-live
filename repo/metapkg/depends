@@ -1,6 +1,6 @@
 baseinit
 dhcpcd
-eudev
+libudev-zero
 linux
 tinyramfs
 util-linux     make

@@ -134,9 +134,16 @@ prepare_rootfs()
 
     print "Enabling services"
     chroot_exec "
-        ln -sf /etc/sv/udevd  /var/service
+        ln -sf /etc/sv/mdev  /var/service
         ln -sf /usr/share/dhcpcd/hooks/10-wpa_supplicant /usr/lib/dhcpcd/dhcpcd-hooks/
         ln -sf /etc/sv/dhcpcd /var/service" || panic "Failed enabling services"
+
+    print "Hotplugging support"
+    chroot_exec "
+        {
+            echo 'SUBSYSTEM=drm;.*   root:video 660 *env > /tmp/.libudev-zero/uevent.\$\$'
+            echo 'SUBSYSTEM=input;.* root:input 660 *env > /tmp/.libudev-zero/uevent.\$\$'
+        } >> /etc/mdev.conf" || panic "Failed to add hotplugging"
 
     print "Swap into util-linux mount"
     chroot_exec "kiss a util-linux /usr/bin/mount"
