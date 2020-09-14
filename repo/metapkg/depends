@@ -2,6 +2,5 @@ baseinit
 dhcpcd
 libudev-zero
 linux
-tinyramfs
 util-linux     make
 wpa_supplicant
