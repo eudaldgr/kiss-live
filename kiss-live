@@ -139,6 +139,11 @@ prepare_rootfs()
         ln -sf /usr/share/dhcpcd/hooks/10-wpa_supplicant /usr/lib/dhcpcd/dhcpcd-hooks/
         ln -sf /etc/sv/dhcpcd /var/service" || panic "Failed enabling services"
 
+    print "Hotplugging at boot"
+    mkdir -p "$rootfsdir/etc/rc.d"
+    chroot_exec "echo 'echo /usr/bin/helper > /proc/sys/kernel/hotplug' > /etc/rc.d/hotplug.boot" \
+        || panic "Failed to hotplug at boot"
+
     print "Swap into util-linux mount"
     chroot_exec "kiss a util-linux /usr/bin/mount"
 
@@ -146,6 +151,9 @@ prepare_rootfs()
     chroot_exec "sed -i 's/getty 38400 tty1/login -f root/g' /etc/inittab"
 
     ## to-do: remove orphans
+    # temporal solution
+    print "Remove orphans"
+    chroot_exec "kiss r metapkg pkgconf" || panic "Failed to remove pkg's"
     
     if [ ! -z "$cachedir" ]; then
         print "Unmounting cache dir"
@@ -170,9 +178,8 @@ make_iso()
         "$isodir/kiss/kiss-rootfs.sfs" \
         -comp xz \
         -Xbcj x86 \
-        -e "$rootfsdir/etc/profile.d"/* \
+        -e "$rootfsdir/etc/profile.d/kiss-live.sh" \
         -e "$rootfsdir/root/.cache" \
-        -e "$rootfsdir/tmp"/* \
         -e "$rootfsdir/var/db/kiss/repo" \
         -e "$rootfsdir/var/db/kiss/community" \
         -e "$rootfsdir/var/db/kiss/live" \
