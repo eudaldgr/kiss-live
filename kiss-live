@@ -144,9 +144,6 @@ prepare_rootfs()
     chroot_exec "echo 'echo /usr/bin/helper > /proc/sys/kernel/hotplug' > /etc/rc.d/hotplug.boot" \
         || panic "Failed to hotplug at boot"
 
-    print "Swap into util-linux mount"
-    chroot_exec "kiss a util-linux /usr/bin/mount"
-
     print "Enable auto-login"
     chroot_exec "sed -i 's/getty 38400 tty1/login -f root/g' /etc/inittab"
 
@@ -199,8 +196,11 @@ make_iso()
         "$rootfsdir/usr/share/tinyramfs/hooks/live/live.init" \
         || panic "Failed preparing tinyramfs"
 
-    chroot_exec "debug=$debug tinyramfs -k $kernver -o /boot/initrd" \
-        || panic "Failed create initramfs"
+    chroot_exec "
+        kiss b tinyramfs && kiss i tinyramfs
+        kiss a util-linux /usr/bin/mount
+        debug=$debug tinyramfs -k $kernver -o /boot/initrd" \
+    || panic "Failed create initramfs"
 
     cp "$rootfsdir/boot/initrd" "$isodir/boot/initrd" \
         || panic "Failed copying initrd"
