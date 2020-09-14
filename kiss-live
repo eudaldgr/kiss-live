@@ -118,7 +118,8 @@ prepare_rootfs()
             echo 'export CFLAGS=\"-march=x86-64 -mtune=generic -pipe -Os\"'
             echo 'export CXXFLAGS=\"\$CFLAGS\"'
             echo 'export MAKEFLAGS=\"-j4\"'
-        } >> /etc/profile.d/kiss-live.sh" || panic "Failed preparing rootfs enviroment"
+        } >> /etc/profile.d/kiss-live.sh" \
+    || panic "Failed preparing rootfs enviroment"
 
     print "Updating system"
     chroot_exec "kiss u && kiss u" || panic "Failed updating system"
@@ -137,7 +138,8 @@ prepare_rootfs()
     print "Enabling services"
     chroot_exec "
         ln -sf /usr/share/dhcpcd/hooks/10-wpa_supplicant /usr/lib/dhcpcd/dhcpcd-hooks/
-        ln -sf /etc/sv/dhcpcd /var/service" || panic "Failed enabling services"
+        ln -sf /etc/sv/dhcpcd                            /var/service" \
+    || panic "Failed enabling services"
 
     print "Hotplugging at boot"
     mkdir -p "$rootfsdir/etc/rc.d"
@@ -152,7 +154,8 @@ prepare_rootfs()
     ## to-do: remove orphans
     # temporal solution
     print "Remove orphans"
-    chroot_exec "kiss r metapkg pkgconf" || panic "Failed to remove pkg's"
+    chroot_exec "kiss r metapkg pkgconf linux-headers bison m4" \
+        || panic "Failed to remove pkg's"
     
     if [ ! -z "$cachedir" ]; then
         print "Unmounting cache dir"
