@@ -2,5 +2,4 @@ baseinit
 dhcpcd
 libudev-zero
 linux
-util-linux     make
 wpa_supplicant
