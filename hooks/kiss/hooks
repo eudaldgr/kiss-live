@@ -3,18 +3,16 @@
 case $TYPE in
     post-build)
         case $PKG in
-            kiss) # ensure we keep docs
-            ;;
-            libudev-zero) # install our helper script
+            libudev-zero)
                 cc contrib/helper.c -o helper
                 install -Dm755 helper "$DEST/usr/bin/helper"
-                echo /usr/bin/helper > "$DEST/proc/sys/kernel/hotplug"
             ;;
             *)
                 rm -rf "$DEST/etc/bash_completions.d"
                 rm -rf "$DEST/usr/lib/charset.alias"
                 rm -rf "$DEST/usr/share/polkit-1"
                 rm -rf "$DEST/usr/share/gettext"
+                rm -rf "$DEST/usr/share/gtk-doc"
                 rm -rf "$DEST/usr/share/locale"
                 rm -rf "$DEST/usr/share/info"
                 rm -rf "$DEST/usr/share/doc"
