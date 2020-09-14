@@ -145,7 +145,9 @@ prepare_rootfs()
         || panic "Failed to hotplug at boot"
 
     print "Enable auto-login"
-    chroot_exec "sed -i 's/getty 38400 tty1/login -f root/g' /etc/inittab"
+    chroot_exec "
+        sed -i 's/getty 38400 tty1/login -f root/g' /etc/inittab
+        sed -i 's/getty 38400 tty2/login -f root/g' /etc/inittab"
 
     ## to-do: remove orphans
     # temporal solution
