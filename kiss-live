@@ -154,7 +154,7 @@ prepare_rootfs()
     ## to-do: remove orphans
     # temporal solution
     print "Remove orphans"
-    chroot_exec "kiss r metapkg pkgconf linux-headers bison m4" \
+    chroot_exec "kiss r metapkg pkgconf linux-headers bison m4 perl" \
         || panic "Failed to remove pkg's"
     
     if [ ! -z "$cachedir" ]; then
