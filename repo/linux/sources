@@ -1,4 +1,3 @@
-https://cdn.kernel.org/pub/linux/kernel/v5.x/linux-5.8.9.tar.xz
+https://cdn.kernel.org/pub/linux/kernel/v5.x/linux-5.8.10.tar.xz
 files/config
-files/config-virt
 patches/kernel-no-perl.patch
