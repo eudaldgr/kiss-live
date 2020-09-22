@@ -2,4 +2,5 @@ baseinit
 dhcpcd
 libudev-zero
 linux
+sls
 wpa_supplicant
