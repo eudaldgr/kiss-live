@@ -104,7 +104,7 @@ prepare_rootfs()
     print "Preparing rootfs enviroment"
     cp -r "$repodir"             "$rootfsdir/var/db/kiss/live"
     cp -r "$hooksdir/kiss/hooks" "$rootfsdir/root/.cache/hooks"
-    cp -r "$filesdir/issue"       "$rootfsdir/etc/issue"
+    cp -r "$filesdir/issue"      "$rootfsdir/etc/issue"
 
     chroot_exec "
         git clone $url/repo      /var/db/kiss/repo/
@@ -208,11 +208,24 @@ make_iso()
         "$rootfsdir/usr/share/tinyramfs/hooks/live/live.init" \
         || panic "Failed preparing tinyramfs"
 
+    if [ ! -z "$cachedir" ]; then
+        trap 'umount $rootfsdir/root/.cache/kiss/sources' INT
+
+        print "Mounting cache dir"
+        mkdir -p "$rootfsdir/root/.cache/kiss/sources"
+        mount --bind "$cachedir" "$rootfsdir/root/.cache/kiss/sources"
+    fi
+
     chroot_exec "
         kiss b tinyramfs && kiss i tinyramfs
         kiss a util-linux /usr/bin/mount
         debug=$debug tinyramfs -k $kernver -o /boot/initrd" \
     || panic "Failed create initramfs"
+    
+    if [ ! -z "$cachedir" ]; then
+        print "Unmounting cache dir"
+        umount "$rootfsdir/root/.cache/kiss/sources"
+    fi
 
     cp "$rootfsdir/boot/initrd" "$isodir/boot/initrd" \
         || panic "Failed copying initrd"
