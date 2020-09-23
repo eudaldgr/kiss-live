@@ -94,6 +94,8 @@ prepare_rootfs()
     tar xf "$tmpdir/$tar" -C "$rootfsdir" || panic "Failed extracting source"
 
     if [ ! -z "$cachedir" ]; then
+        trap 'umount $rootfsdir/root/.cache/kiss/sources' INT
+
         print "Mounting cache dir"
         mkdir -p "$rootfsdir/root/.cache/kiss/sources"
         mount --bind "$cachedir" "$rootfsdir/root/.cache/kiss/sources"
