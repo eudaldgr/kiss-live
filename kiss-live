@@ -176,8 +176,9 @@ make_iso()
         mkdir -p "$isodir/$dir"
     done
 
+    cp "$filesdir/isolinux.cfg" "$isodir/isolinux"
     for file in $isolinux_files; do
-        cp "$filesdir/$file" "$isodir/isolinux"
+        cp "/usr/lib/syslinux/$file" "$isodir/isolinux"
     done
     
     print "Squashing root filesystem"
@@ -265,7 +266,7 @@ make_iso()
     rm -f "$isolabel.iso" "$isolabel.iso.md5" "$isolabel.iso.sha1"
     xorriso \
         -as mkisofs \
-        -isohybrid-mbr "$filesdir/isohdpfx.bin" \
+        -isohybrid-mbr /usr/lib/syslinux/isohdpfx.bin \
         -c isolinux/boot.cat \
         -b isolinux/isolinux.bin \
         -no-emul-boot \
