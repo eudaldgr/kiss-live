@@ -19,4 +19,4 @@ ________________________________________________________________________________
 - [x] slim down the iso filesize (well, slimed down before 'custom' config)
 - [x] create 'custom' config kernel
 - [ ] docker img
-- [ ] build isolinux natively
+- [x] build isolinux natively
