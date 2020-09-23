@@ -102,7 +102,7 @@ prepare_rootfs()
     print "Preparing rootfs enviroment"
     cp -r "$repodir"             "$rootfsdir/var/db/kiss/live"
     cp -r "$hooksdir/kiss/hooks" "$rootfsdir/root/.cache/hooks"
-    cp -r "$filesdir/motd"       "$rootfsdir/etc/motd"
+    cp -r "$filesdir/issue"       "$rootfsdir/etc/issue"
 
     chroot_exec "
         git clone $url/repo      /var/db/kiss/repo/
