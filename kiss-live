@@ -102,6 +102,7 @@ prepare_rootfs()
     print "Preparing rootfs enviroment"
     cp -r "$repodir"             "$rootfsdir/var/db/kiss/live"
     cp -r "$hooksdir/kiss/hooks" "$rootfsdir/root/.cache/hooks"
+    cp -r "$filesdir/motd"       "$rootfsdir/etc/motd"
 
     chroot_exec "
         git clone $url/repo      /var/db/kiss/repo/
@@ -146,10 +147,13 @@ prepare_rootfs()
     chroot_exec "echo 'echo /usr/bin/helper > /proc/sys/kernel/hotplug' > /etc/rc.d/hotplug.boot" \
         || panic "Failed to hotplug at boot"
 
-    print "Enable auto-login"
+    print "Enable login's"
     chroot_exec "
-        sed -i 's/getty 38400 tty1/login -f root/g' /etc/inittab
-        sed -i 's/getty 38400 tty2/login -f root/g' /etc/inittab"
+        adduser -D kiss
+        echo kiss:kiss | chpasswd kiss
+        echo root:root | chpasswd root
+        chown root:kiss /usr/bin/sls
+        chmod gu+s /usr/bin/sls"
 
     ## to-do: remove orphans
     # temporal solution
