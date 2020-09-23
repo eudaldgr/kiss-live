@@ -12,7 +12,7 @@ The Live repository for generate UNOFFICIAL images of KISS Linux.
 todo
 ________________________________________________________________________________
 
-- [ ] unmount correctly cachedir when INT
+- [x] unmount correctly cachedir when INT
 - [ ] sign iso files generated
 - [x] solve tinyramfs hook mount -o ro
 - [ ] solve init to ram disk
