@@ -1,24 +1,10 @@
 #!/bin/sh -e
 
-# Set the kernel up for success!
-scripts/setlocalversion --save-scmversion
-cp config .config
 make olddefconfig
-make kernelrelease > version
-
-# Useful variables
-modulesdir="$1/usr/lib/modules/$2"
-
-# Make that bad boy!
-echo "Making linux-$2"
 make -j "$(nproc)"
-
-echo "Installing modules..."
 make INSTALL_MOD_PATH="$1/usr" INSTALL_MOD_STRIP=1 modules_install
 
-echo "Cleaning up..."
-rm "$modulesdir/build" "$modulesdir/source"
+rm "$1/usr/lib/modules/$2/build" "$1/usr/lib/modules/$2/source"
 
-echo "Installing kernel..."
 install -Dm644 "arch/x86/boot/bzImage" "$1/boot/vmlinuz"
 install -Dm644 "System.map"            "$1/boot/System.map"
