@@ -127,6 +127,11 @@ prepare_rootfs()
     print "Updating system"
     chroot_exec "kiss u && kiss u" || panic "Failed updating system"
 
+    print "Rebuild all"
+    chroot_exec "
+        cd /var/db/kiss/installed
+        kiss b *" || panic "Failed to rebuild system"
+
     [ "$packages" ] && {
         print "Installing additional packages"
         packages=$(echo "$packages" | tr ',' ' ')
@@ -189,6 +194,7 @@ make_iso()
         -Xbcj x86 \
         -e "$rootfsdir/etc/profile.d/kiss-live.sh" \
         -e "$rootfsdir/root/.cache" \
+        -e "$rootfsdir/usr/share/licenses" \
         -e "$rootfsdir/var/db/kiss/repo" \
         -e "$rootfsdir/var/db/kiss/community" \
         -e "$rootfsdir/var/db/kiss/live" \
