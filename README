@@ -20,3 +20,31 @@ ________________________________________________________________________________
 - [x] create 'custom' config kernel
 - [ ] docker img
 - [x] build isolinux natively
+
+Dependencies
+________________________________________________________________________________
+
+* 'grub'
+* 'libisoburn'
+* 'squashfs-tools'
+* 'syslinux'
+* 'tinyramfs'
+
+Usage
+________________________________________________________________________________
+
+usage: kiss-live [options ...]
+       -b, --build   <file>           set config file path
+                                      default is ./build.cfg
+
+       -c, --cache   <dir>            set cache directory
+                                      default is inside chroot
+                                    
+       -o, --output  <name>           set livecd output path
+                                      default is kiss-live-\$ver
+                                    
+       -p, --package <pkg1,pkg2,...>  set packages to install
+                                      default are <none>
+
+       -d, --debug                    enable debug mode
+       -h, --help                     show this help
