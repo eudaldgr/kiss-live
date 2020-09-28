@@ -139,7 +139,7 @@ prepare_rootfs()
         kiss b *" || panic "Failed to rebuild system"
 
     [ "$packages" ] && {
-        chroot_exec "echo "$packages" | sed 's/,/\\n/g' | tee -a /var/db/kiss/live/metapkg/depends" \
+        chroot_exec "echo $packages | sed 's/,/\\n/g' | tee -a /var/db/kiss/live/metapkg/depends" \
             || panic "Failed installing additional packages"
     }
 
