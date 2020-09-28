@@ -1,5 +1,4 @@
 bison         make
-kmod          make
 libelf
 linux-headers make
 perl          make
