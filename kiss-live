@@ -139,12 +139,11 @@ prepare_rootfs()
         kiss b *" || panic "Failed to rebuild system"
 
     [ "$packages" ] && {
-        print "Installing additional packages"
         chroot_exec "echo "$packages" | sed 's/,/\n/g' | tee -a /var/db/kiss/live/metapkg/depends" \
             || panic "Failed installing additional packages"
     }
 
-    print "Installing packages required by iso"
+    print "Installing packages"
     chroot_exec "kiss b metapkg && kiss i metapkg" \
         || panic "Failed installing iso packages"
 
@@ -160,7 +159,7 @@ prepare_rootfs()
             kiss remove `kiss orphans | grep -v metapkg | tr '\n' ' '`
         done
         kiss r metapkg" \
-        || panic "Failed to remove pkg's"
+        || panic "Failed to remove orphans"
 }
 
 make_iso()
