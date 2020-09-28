@@ -95,7 +95,7 @@ prepare_rootfs()
     tar xf "$tmpdir/$tar" -C "$rootfsdir" || panic "Failed extracting source"
 
     if [ ! -z "$cachedir" ]; then
-        trap 'umount $rootfsdir/root/.cache/kiss/sources' INT
+        trap 'umount $rootfsdir/root/.cache/kiss/sources' EXIT INT
 
         print "Mounting cache dir"
         mkdir -p "$rootfsdir/root/.cache/kiss/sources"
@@ -210,7 +210,7 @@ make_iso()
         || panic "Failed preparing tinyramfs"
 
     if [ ! -z "$cachedir" ]; then
-        trap 'umount $rootfsdir/root/.cache/kiss/sources' INT
+        trap 'umount $rootfsdir/root/.cache/kiss/sources' EXIT INT
 
         print "Mounting cache dir"
         mkdir -p "$rootfsdir/root/.cache/kiss/sources"
