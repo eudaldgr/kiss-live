@@ -1,8 +1,0 @@
-#!/bin/sh
-#
-# false positive
-# shellcheck disable=2154
-
-if [ "$ram" ]; then
-    umount /run/initramfs/medium
-fi

@@ -21,14 +21,16 @@ mkdir -p "$medium" "$system" "$writedir" "$workdir"
 print "mounting media to $medium"
 mount -o ro "$media" "$medium" || panic
 
-if [ "$ram" = y ]; then
+[ "$ram" ] && {
     print "mounting /run/initramfs/ram to ram"
     mkdir -p /run/initramfs/ram
-    mount -t tmpfs -o "size=75%",mode=0755 ram /run/initramfs/ram || panic
+    mount -t tmpfs -o size=50%,mode=0755 ram /run/initramfs/ram || panic
     print "copying squashfs img to /run/initramfs/ram"
     cp "$sfsimg" /run/initramfs/ram/ || panic
     sfsimg=/run/initramfs/ram/kiss-rootfs.sfs
-fi
+    print "Now, you can eject your MEDIUM"
+    umount "$medium"
+}
 
 losetup -f -r $sfsimg
 sfsdev=$(losetup -a | awk '/kiss-rootfs.sfs/{print $1}')
