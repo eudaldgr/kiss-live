@@ -6,6 +6,7 @@ case $TYPE in
             libudev-zero)
                 cc contrib/helper.c -o helper
                 install -Dm755 helper "$DEST/usr/bin/helper"
+                mkdir -p "$DEST/etc/rc.d"
                 echo 'echo /usr/bin/helper > /proc/sys/kernel/hotplug' > "$DEST/etc/rc.d/hotplug.boot"
             ;;
 
