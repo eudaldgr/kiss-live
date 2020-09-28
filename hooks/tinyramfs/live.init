@@ -24,7 +24,7 @@ mount -o ro "$media" "$medium" || panic
 [ "$ram" ] && {
     print "mounting /run/initramfs/ram to ram"
     mkdir -p /run/initramfs/ram
-    mount -t tmpfs -o size=50%,mode=0755 ram /run/initramfs/ram || panic
+    mount -t tmpfs -o size=25%,mode=0755 ram /run/initramfs/ram || panic
     print "copying squashfs img to /run/initramfs/ram"
     cp "$sfsimg" /run/initramfs/ram/ || panic
     sfsimg=/run/initramfs/ram/kiss-rootfs.sfs

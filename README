@@ -15,11 +15,12 @@ ________________________________________________________________________________
 - [x] unmount correctly cachedir when INT
 - [ ] sign iso files generated
 - [x] solve tinyramfs hook mount -o ro
-- [ ] solve init to ram disk
+- [x] solve init to ram disk
 - [x] slim down the iso filesize (well, slimed down before 'custom' config)
 - [x] create 'custom' config kernel
 - [ ] docker img
 - [x] build isolinux natively
+- [ ] torrent download
 
 Dependencies
 ________________________________________________________________________________
