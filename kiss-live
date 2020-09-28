@@ -156,7 +156,7 @@ prepare_rootfs()
     print "Remove orphans"
     chroot_exec "
         while kiss orphans | grep -qv metapkg; do \
-            kiss remove `kiss orphans | grep -v metapkg | tr '\n' ' '`; \
+            kiss remove \`kiss orphans | grep -v metapkg | tr '\\n' ' '\`; \
         done
         kiss r metapkg" \
         || panic "Failed to remove orphans"
