@@ -156,10 +156,12 @@ prepare_rootfs()
         ln -sf /etc/sv/dhcpcd                            /var/service" \
     || panic "Failed enabling services"
 
-    ## to-do: remove orphans
-    # temporal solution
     print "Remove orphans"
-    chroot_exec "kiss r bison kmod linux-headers m4 metapkg perl pkgconf" \
+    chroot_exec "
+        while kiss orphans | grep -qv metapkg; do
+            kiss remove `kiss orphans | grep -v metapkg | tr '\n' ' '`
+        done
+        kiss r metapkg" \
         || panic "Failed to remove pkg's"
 }
 
