@@ -41,7 +41,7 @@ usage: kiss-live [options ...]
                                       default is inside chroot
                                     
        -o, --output  <name>           set livecd output path
-                                      default is kiss-live-\$ver
+                                      default is kiss-live-$ver
                                     
        -p, --package <pkg1,pkg2,...>  set packages to install
                                       default are <none>
