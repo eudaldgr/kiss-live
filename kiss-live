@@ -18,7 +18,6 @@ panic()
 
 chroot_exec()
 {
-    trap '' INT
     echo "$1 3>&-" | "$rootfsdir/bin/kiss-chroot" "${2:-$rootfsdir}" >/dev/null
 }
 
