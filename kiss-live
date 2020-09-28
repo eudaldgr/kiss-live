@@ -125,6 +125,12 @@ prepare_rootfs()
         } >> /etc/profile.d/kiss-live.sh" \
     || panic "Failed preparing rootfs enviroment"
 
+    print "Enable login's"
+    chroot_exec "
+        adduser -D kiss
+        echo kiss:kiss | chpasswd kiss
+        echo root:root | chpasswd root"
+
     print "Updating system"
     chroot_exec "kiss u && kiss u" || panic "Failed updating system"
 
@@ -149,12 +155,6 @@ prepare_rootfs()
         ln -sf /usr/share/dhcpcd/hooks/10-wpa_supplicant /usr/lib/dhcpcd/dhcpcd-hooks/
         ln -sf /etc/sv/dhcpcd                            /var/service" \
     || panic "Failed enabling services"
-
-    print "Enable login's"
-    chroot_exec "
-        adduser -D kiss
-        echo kiss:kiss | chpasswd kiss
-        echo root:root | chpasswd root"
 
     ## to-do: remove orphans
     # temporal solution
