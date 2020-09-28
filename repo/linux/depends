@@ -1,3 +1,5 @@
-bison  make
+bison         make
+kmod          make
 libelf
-perl   make
+linux-headers make
+perl          make
