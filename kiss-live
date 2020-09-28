@@ -141,8 +141,7 @@ prepare_rootfs()
 
     [ "$packages" ] && {
         print "Installing additional packages"
-        packages=$(echo "$packages" | tr ',' ' ')
-        chroot_exec "kiss b $packages && kiss i $packages" \
+        chroot_exec "echo "$packages" | sed 's/,/\n/g' | tee -a /var/db/kiss/live/metapkg/depends" \
             || panic "Failed installing additional packages"
     }
 
