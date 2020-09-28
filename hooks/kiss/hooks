@@ -6,14 +6,15 @@ case $TYPE in
             libudev-zero)
                 cc contrib/helper.c -o helper
                 install -Dm755 helper "$DEST/usr/bin/helper"
+                echo 'echo /usr/bin/helper > /proc/sys/kernel/hotplug' > "$DEST/etc/rc.d/hotplug.boot"
             ;;
+
             *)
                 if [ "$PKG" != kiss ]; then
                     rm -rf "$DEST/usr/share/bash-completion"
                     rm -rf "$DEST/etc/bash_completions.d"
                     rm -rf "$DEST/usr/lib/charset.alias"
                     rm -rf "$DEST/usr/share/polkit-1"
-                    rm -rf "$DEST/usr/share/git-core"
                     rm -rf "$DEST/usr/share/gettext"
                     rm -rf "$DEST/usr/share/gtk-doc"
                     rm -rf "$DEST/usr/share/locale"
@@ -25,4 +26,13 @@ case $TYPE in
             ;;
         esac
     ;;
+
+    post-install)
+        case $PKG in
+            sls)
+                chown root:kiss /usr/bin/sls
+                chmod gu+s      /usr/bin/sls
+            ;;
+        esac
+     ;;
 esac

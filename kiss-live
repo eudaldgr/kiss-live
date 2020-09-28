@@ -18,6 +18,7 @@ panic()
 
 chroot_exec()
 {
+    trap '' INT
     echo "$1 3>&-" | "$rootfsdir/bin/kiss-chroot" "${2:-$rootfsdir}" >/dev/null
 }
 
@@ -149,18 +150,11 @@ prepare_rootfs()
         ln -sf /etc/sv/dhcpcd                            /var/service" \
     || panic "Failed enabling services"
 
-    print "Hotplugging at boot"
-    mkdir -p "$rootfsdir/etc/rc.d"
-    chroot_exec "echo 'echo /usr/bin/helper > /proc/sys/kernel/hotplug' > /etc/rc.d/hotplug.boot" \
-        || panic "Failed to hotplug at boot"
-
     print "Enable login's"
     chroot_exec "
         adduser -D kiss
         echo kiss:kiss | chpasswd kiss
-        echo root:root | chpasswd root
-        chown root:kiss /usr/bin/sls
-        chmod gu+s /usr/bin/sls"
+        echo root:root | chpasswd root"
 
     ## to-do: remove orphans
     # temporal solution
