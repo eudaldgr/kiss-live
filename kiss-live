@@ -161,11 +161,6 @@ prepare_rootfs()
     print "Remove orphans"
     chroot_exec "kiss r bison kmod linux-headers m4 metapkg perl pkgconf" \
         || panic "Failed to remove pkg's"
-    
-    if [ ! -z "$cachedir" ]; then
-        print "Unmounting cache dir"
-        umount "$rootfsdir/root/.cache/kiss/sources"
-    fi
 }
 
 make_iso()
@@ -208,14 +203,6 @@ make_iso()
     sed -i "s/@ISOLABEL@/$isolabel/g" \
         "$rootfsdir/usr/share/tinyramfs/hooks/live/live.init" \
         || panic "Failed preparing tinyramfs"
-
-    if [ ! -z "$cachedir" ]; then
-        trap 'umount $rootfsdir/root/.cache/kiss/sources' EXIT INT
-
-        print "Mounting cache dir"
-        mkdir -p "$rootfsdir/root/.cache/kiss/sources"
-        mount --bind "$cachedir" "$rootfsdir/root/.cache/kiss/sources"
-    fi
 
     chroot_exec "
         kiss b tinyramfs && kiss i tinyramfs
