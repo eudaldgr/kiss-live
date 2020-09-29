@@ -20,7 +20,7 @@ ________________________________________________________________________________
 - [x] create 'custom' config kernel
 - [ ] docker img
 - [x] build isolinux natively
-- [ ] torrent download
+- [x] torrent download
 
 Dependencies
 ________________________________________________________________________________
