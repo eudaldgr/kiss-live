@@ -210,11 +210,6 @@ make_iso()
         debug=$debug tinyramfs -k $kernver -o /boot/initrd" \
     || panic "Failed create initramfs"
     
-    if [ ! -z "$cachedir" ]; then
-        print "Unmounting cache dir"
-        umount "$rootfsdir/root/.cache/kiss/sources"
-    fi
-
     cp "$rootfsdir/boot/initrd" "$isodir/boot/initrd" \
         || panic "Failed copying initrd"
     
