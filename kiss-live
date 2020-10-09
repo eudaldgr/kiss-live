@@ -76,6 +76,7 @@ prepare_environment()
     # shellcheck disable=1090
     . "${buildcfg:=./build.cfg}"
 
+    rm -rf "$rootfsdir" "$isodir"
     mkdir -p "$rootfsdir" "$isodir" "$tmpdir"
 
     # false positive
