@@ -43,6 +43,13 @@ usage: ${0##*/} [options ...]
 EOF
 }
 
+check_depends()
+{
+    for _pkg in grub libisoburn squashfs-tools syslinux; do
+        [ -d "/var/db/kiss/installed/$_pkg" ] || panic "$_pkg not installed"
+    done
+}
+
 prepare_environment()
 {
     while [ "$1" ]; do case "$1" in
@@ -277,6 +284,7 @@ make_iso()
     # enable exit on error and disable globbing
     set -ef
 
+    check_depends
     prepare_environment "$@"
     prepare_rootfs
     make_iso
