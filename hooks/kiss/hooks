@@ -11,7 +11,7 @@ case $TYPE in
             *)
                 if [ "$PKG" != kiss ]; then
                     rm -rf "$DEST/usr/share/bash-completion"
-                    rm -rf "$DEST/etc/bash_completions.d"
+                    rm -rf "$DEST/etc/bash_completion.d"
                     rm -rf "$DEST/usr/lib/charset.alias"
                     rm -rf "$DEST/usr/share/polkit-1"
                     rm -rf "$DEST/usr/share/gettext"
