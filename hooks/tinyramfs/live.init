@@ -28,8 +28,8 @@ mount -o ro "$media" "$medium" || panic
     print "copying squashfs img to /run/initramfs/ram"
     cp "$sfsimg" /run/initramfs/ram/ || panic
     sfsimg=/run/initramfs/ram/kiss-rootfs.sfs
-    print "Now, you can eject your MEDIUM"
     umount "$medium"
+    print "Now, you can eject your MEDIUM"
 }
 
 losetup -f -r $sfsimg
