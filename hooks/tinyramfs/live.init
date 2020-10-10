@@ -18,13 +18,13 @@ sfsimg="$medium/$live_img_file"
 
 [ "$ram" ] && {
     mkdir -p /run/initramfs/ram
-    mount -t tmpfs -o ${live_ram_opts:?} ram /run/initramfs/ram || panic
+    mount -t tmpfs -o "${live_ram_opts:?}" ram /run/initramfs/ram || panic
     cp "$sfsimg" /run/initramfs/ram || panic
     umount "$medium"
     sfsimg="$ramdir/$live_img_file"
 }
 
 sfsdev=$(losetup -f)
-losetup -f -r $sfsimg
+losetup -f -r "$sfsimg"
 
-mount -t squashfs -o ${live_sfs_opts:-defaults,ro} "$sfsdev" "$system" || panic
+mount -t squashfs -o "${live_sfs_opts:-defaults,ro}" "$sfsdev" "$system" || panic
