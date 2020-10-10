@@ -86,6 +86,14 @@ prepare_environment()
     rm -rf "$rootfsdir" "$isodir"
     mkdir -p "$rootfsdir" "$isodir" "$tmpdir"
 
+    if [ ! -z "$cachedir" ]; then
+        trap 'umount $rootfsdir/root/.cache/kiss/sources' EXIT INT
+
+        print "Mounting cache dir"
+        mkdir -p "$rootfsdir/root/.cache/kiss/sources"
+        mount --bind "$cachedir" "$rootfsdir/root/.cache/kiss/sources"
+    fi
+
     # false positive
     # shellcheck disable=2015
     [ "$debug" = 1 ] && set -x || trap 'rm -rf $rootfsdir $isodir $tmpdir' EXIT INT
@@ -100,14 +108,6 @@ prepare_rootfs()
 
     print "Extracting source"
     tar xf "$tmpdir/$tar" -C "$rootfsdir" || panic "Failed extracting source"
-
-    if [ ! -z "$cachedir" ]; then
-        trap 'umount $rootfsdir/root/.cache/kiss/sources' EXIT INT
-
-        print "Mounting cache dir"
-        mkdir -p "$rootfsdir/root/.cache/kiss/sources"
-        mount --bind "$cachedir" "$rootfsdir/root/.cache/kiss/sources"
-    fi
 
     print "Preparing rootfs enviroment"
     cp -r "$repodir"             "$rootfsdir/var/db/kiss/live"
@@ -173,7 +173,7 @@ prepare_rootfs()
 make_iso()
 {
     print "Preparing isolinux files"
-    for dir in kiss isolinux boot; do
+    for dir in isolinux boot; do
         mkdir -p "$isodir/$dir"
     done
 
@@ -185,7 +185,7 @@ make_iso()
     print "Squashing root filesystem"
     mksquashfs \
         "$rootfsdir" \
-        "$isodir/kiss/kiss-rootfs.sfs" \
+        "$isodir/kiss-rootfs.sfs" \
         -comp xz \
         -Xbcj x86 \
         -e "$rootfsdir/boot/vmlinuz" \
@@ -209,7 +209,7 @@ make_iso()
     cp -r "$filesdir/config"    "$rootfsdir/etc/tinyramfs/config"
 
     sed -i "s/@ISOLABEL@/$isolabel/g" \
-        "$rootfsdir/usr/share/tinyramfs/hooks/live/live.init" \
+        "$rootfsdir/etc/tinyramfs/config" \
         || panic "Failed preparing tinyramfs"
 
     chroot_exec "
