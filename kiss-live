@@ -187,6 +187,7 @@ make_iso()
         "$rootfsdir" \
         "$isodir/kiss-rootfs.sfs" \
         -comp xz \
+        -b 1024K \
         -Xbcj x86 \
         -e "$rootfsdir/boot/vmlinuz" \
         -e "$rootfsdir/etc/profile.d/kiss-live.sh" \
