@@ -5,6 +5,5 @@ root_type="$root"
 root_opts="upperdir=/run/initramfs/overlayfs/write,lowerdir=/run/initramfs/system,workdir=/run/initramfs/overlayfs/work"
 
 live_disk=@ISOLABEL@
-live_disk_type=label
 live_img_file=kiss-rootfs.sfs
 live_ram_opts="size=25%,mode=0755"
