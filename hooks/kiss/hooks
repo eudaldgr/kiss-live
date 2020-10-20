@@ -3,25 +3,28 @@
 case $TYPE in
     post-build)
         case $PKG in
+            kiss) # ensure we keep docs
+            ;;
             libudev-zero)
                 cc contrib/helper.c -o helper
                 install -Dm755 helper "$DEST/usr/bin/helper"
             ;;
 
             *)
-                if [ "$PKG" != kiss ]; then
-                    rm -rf "$DEST/usr/share/bash-completion"
-                    rm -rf "$DEST/etc/bash_completion.d"
-                    rm -rf "$DEST/usr/lib/charset.alias"
-                    rm -rf "$DEST/usr/share/polkit-1"
-                    rm -rf "$DEST/usr/share/gettext"
-                    rm -rf "$DEST/usr/share/gtk-doc"
-                    rm -rf "$DEST/usr/share/locale"
-                    rm -rf "$DEST/usr/share/info"
-                    rm -rf "$DEST/usr/share/doc"
-                    rm -rf "$DEST/usr/share/man"
-                    rm -rf "$DEST/usr/share/zsh"
-                fi
+                rm -rf "$DEST/usr/share/bash-completion"
+                rm -rf "$DEST/usr/share/applications"
+                rm -rf "$DEST/etc/bash_completion.d"
+                rm -rf "$DEST/usr/lib/charset.alias"
+                rm -rf "$DEST/usr/share/polkit-1"
+                rm -rf "$DEST/usr/share/gettext"
+                rm -rf "$DEST/usr/share/gtk-doc"
+                rm -rf "$DEST/usr/share/locale"
+                rm -rf "$DEST/usr/share/sounds"
+                rm -rf "$DEST/usr/share/icons"
+                rm -rf "$DEST/usr/share/info"
+                rm -rf "$DEST/usr/share/doc"
+                rm -rf "$DEST/usr/share/man"
+                rm -rf "$DEST/usr/share/zsh"
             ;;
         esac
     ;;
