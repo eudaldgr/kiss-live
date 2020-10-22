@@ -30,6 +30,9 @@ check_depends()
         for _pkg in grub libisoburn squashfs-tools syslinux; do
             [ -d "/var/db/kiss/installed/$_pkg" ] || panic "$_pkg not installed"
         done
+    } || {
+        print "Distro not supported, errors may be expected."
+        sleep 5;
     }
 }
 
