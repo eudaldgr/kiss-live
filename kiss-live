@@ -23,6 +23,7 @@ chroot_exec()
 
 check_depends()
 {
+    # shellcheck disable=1091
     . /etc/os-release
 
     [ "$PRETTY_NAME" = "KISS Linux" ] && {
