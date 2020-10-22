@@ -21,6 +21,17 @@ chroot_exec()
     echo "$1 3>&-" | "$rootfsdir/bin/kiss-chroot" "${2:-$rootfsdir}" >/dev/null
 }
 
+check_depends()
+{
+    . /etc/os-release
+
+    [ "$PRETTY_NAME" = "KISS Linux" ] && {
+        for _pkg in grub libisoburn squashfs-tools syslinux; do
+            [ -d "/var/db/kiss/installed/$_pkg" ] || panic "$_pkg not installed"
+        done
+    }
+}
+
 usage()
 {
     cat << EOF
@@ -41,13 +52,6 @@ usage: ${0##*/} [options ...]
        -h, --help                     show this help
 
 EOF
-}
-
-check_depends()
-{
-    for _pkg in grub libisoburn squashfs-tools syslinux; do
-        [ -d "/var/db/kiss/installed/$_pkg" ] || panic "$_pkg not installed"
-    done
 }
 
 prepare_environment()
