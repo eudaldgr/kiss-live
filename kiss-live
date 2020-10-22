@@ -26,6 +26,7 @@ check_depends()
     # shellcheck disable=1091
     . /etc/os-release
 
+    # shellcheck disable=2015
     [ "$PRETTY_NAME" = "KISS Linux" ] && {
         for _pkg in grub libisoburn squashfs-tools syslinux; do
             [ -d "/var/db/kiss/installed/$_pkg" ] || panic "$_pkg not installed"
