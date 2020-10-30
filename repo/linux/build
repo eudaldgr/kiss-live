@@ -1,6 +1,7 @@
 #!/bin/sh -e
 
 make olddefconfig
+#make kvm_guest.config
 make -j "$(nproc)"
 make INSTALL_MOD_PATH="$1/usr" INSTALL_MOD_STRIP=1 modules_install
 
