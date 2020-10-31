@@ -9,7 +9,6 @@ case $TYPE in
                 cc contrib/helper.c -o helper
                 install -Dm755 helper "$DEST/usr/bin/helper"
             ;;
-
             *)
                 rm -rf "$DEST/usr/share/bash-completion"
                 rm -rf "$DEST/usr/share/applications"
@@ -28,7 +27,6 @@ case $TYPE in
             ;;
         esac
     ;;
-
     post-install)
         case $PKG in
             sls)

@@ -3,7 +3,9 @@ cache/
 iso/
 rootfs/
 tmp/
+qemu/
 *.iso
 *.md5
 *.img
 *.sha1
+*.qcow2
