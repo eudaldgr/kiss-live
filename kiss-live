@@ -18,7 +18,7 @@ panic()
 
 chroot_exec()
 {
-    echo "$1 3>&-" | "$rootfsdir/bin/kiss-chroot" "${2:-$rootfsdir}" >/dev/null
+    echo "$1 3>&-" | "$rootfsdir/usr/bin/kiss-chroot" "${2:-$rootfsdir}" >/dev/null
 }
 
 check_depends()
@@ -27,14 +27,14 @@ check_depends()
     . /etc/os-release
 
     # shellcheck disable=2015
-    [ "$PRETTY_NAME" = "KISS Linux" ] && {
+    if [ "$PRETTY_NAME" = "KISS Linux" ]; then
         for _pkg in grub libisoburn squashfs-tools syslinux; do
             [ -d "/var/db/kiss/installed/$_pkg" ] || panic "$_pkg not installed"
         done
-    } || {
+    else
         print "Distro not supported, errors may be expected."
         sleep 5;
-    }
+    fi
 }
 
 usage()
@@ -92,16 +92,16 @@ prepare_environment()
     # shellcheck disable=1090
     . "${buildcfg:=./build.cfg}"
 
-    rm -rf "$rootfsdir" "$isodir"
-    mkdir -p "$rootfsdir" "$isodir" "$tmpdir"
+    rm    -rf "$rootfsdir" "$isodir" #"$tmpdir"
+    mkdir -p  "$rootfsdir" "$isodir" "$tmpdir"
 
-    if [ ! -z "$cachedir" ]; then
+    [ ! -z "$cachedir" ] && {
         trap 'umount $rootfsdir/root/.cache/kiss/sources' EXIT INT
 
         print "Mounting cache dir"
-        mkdir -p "$rootfsdir/root/.cache/kiss/sources"
-        mount --bind "$cachedir" "$rootfsdir/root/.cache/kiss/sources"
-    fi
+            mkdir -p "$rootfsdir/root/.cache/kiss/sources"
+            mount --bind "$cachedir" "$rootfsdir/root/.cache/kiss/sources"
+    }
 
     # false positive
     # shellcheck disable=2015
@@ -110,50 +110,49 @@ prepare_environment()
 
 prepare_rootfs()
 {
-    if [ ! -f "$tmpdir/$tar" ]; then
+    [ ! -f "$tmpdir/$tar" ] && {
         print "Downloading source"
-        wget "$down" -O "$tmpdir/$tar" || panic "Failed downloading source"
-    fi
+            curl -L "$dl" -o "$tmpdir/$tar" || panic "Failed downloading source"
+    }
 
     print "Extracting source"
-    tar xf "$tmpdir/$tar" -C "$rootfsdir" || panic "Failed extracting source"
+        tar xf "$tmpdir/$tar" -C "$rootfsdir" || panic "Failed extracting source"
 
     print "Preparing rootfs enviroment"
-    cp -r "$repodir"             "$rootfsdir/var/db/kiss/live"
-    cp -r "$filesdir/issue"      "$rootfsdir/etc/issue"
-    install -D "$hooksdir/kiss/hooks" -t "$rootfsdir/root/.cache"
+        cp -r "$repodir"        "$rootfsdir/var/db/kiss/live"
+        install -D "$filesdir/issue"      -t "$rootfsdir/etc"
+        install -D "$hooksdir/kiss/hooks" -t "$rootfsdir/root/.cache"
 
-    chroot_exec "
-        git clone $url/repo      /var/db/kiss/repo/
-        git clone $url/community /var/db/kiss/community/
-        {
-            echo 'export KISS_SU=su'
-            echo 'export KISS_PROMPT=0'
-            echo 'export KISS_HOOK=/root/.cache/hooks'
-            echo 'export KISS_PATH=/var/db/kiss/repo/core'
-            echo 'KISS_PATH=\$KISS_PATH:/var/db/kiss/repo/extra'
-            echo 'KISS_PATH=\$KISS_PATH:/var/db/kiss/repo/xorg'
-            echo 'KISS_PATH=\$KISS_PATH:/var/db/kiss/community/community'
-            echo 'KISS_PATH=\$KISS_PATH:/var/db/kiss/live'
-            echo 'export CFLAGS=\"-march=x86-64 -mtune=generic -pipe -Os\"'
-            echo 'export CXXFLAGS=\"\$CFLAGS\"'
-            echo 'export MAKEFLAGS=\"-j4\"'
-        } >> /etc/profile.d/kiss-live.sh" \
-    || panic "Failed preparing rootfs enviroment"
+        chroot_exec "
+            git clone $url/repo      /var/db/kiss/repo/
+            git clone $url/community /var/db/kiss/community/
+            {
+                echo 'export KISS_SU=su'
+                echo 'export KISS_PROMPT=0'
+                echo 'export KISS_HOOK=/root/.cache/hooks'
+                echo 'export KISS_PATH=/var/db/kiss/repo/core'
+                echo 'KISS_PATH=\$KISS_PATH:/var/db/kiss/repo/extra'
+                echo 'KISS_PATH=\$KISS_PATH:/var/db/kiss/repo/xorg'
+                echo 'KISS_PATH=\$KISS_PATH:/var/db/kiss/community/community'
+                echo 'KISS_PATH=\$KISS_PATH:/var/db/kiss/live'
+                echo 'export CFLAGS=\"-march=x86-64 -mtune=generic -pipe -Os\"'
+                echo 'export CXXFLAGS=\"\$CFLAGS\"'
+                echo 'export MAKEFLAGS=\"-j4\"'
+            } >> /etc/profile.d/kiss-live.sh" \
+            || panic "Failed preparing rootfs enviroment"
 
     print "Enable login's"
-    chroot_exec "
-        adduser -D kiss
-        echo kiss:kiss | chpasswd kiss
-        echo root:root | chpasswd root"
+        chroot_exec "
+            adduser -D kiss
+            echo kiss:kiss | chpasswd kiss"
 
     print "Updating system"
-    chroot_exec "kiss u && kiss u" || panic "Failed updating system"
+        chroot_exec "kiss u && kiss u" || panic "Failed updating system"
 
     print "Rebuild all"
-    chroot_exec "
-        cd /var/db/kiss/installed
-        kiss b *" || panic "Failed to rebuild system"
+        chroot_exec "
+            cd /var/db/kiss/installed
+            kiss b *" || panic "Failed to rebuild system"
 
     [ "$packages" ] && {
         chroot_exec "echo $packages | sed 's/,/\\n/g' | tee -a /var/db/kiss/live/metapkg/depends" \
@@ -161,131 +160,135 @@ prepare_rootfs()
     }
 
     print "Installing packages"
-    chroot_exec "kiss b metapkg && kiss i metapkg" \
-        || panic "Failed installing iso packages"
+        chroot_exec "kiss b metapkg && kiss i metapkg" \
+            || panic "Failed installing iso packages"
 
     print "Enabling services"
-    chroot_exec "
-        ln -sf /usr/share/dhcpcd/hooks/10-wpa_supplicant /usr/lib/dhcpcd/dhcpcd-hooks/
-        ln -sf /etc/sv/dhcpcd                            /var/service
-        ln -sf /etc/sv/mdev                              /var/service" \
-    || panic "Failed enabling services"
+        chroot_exec "
+            ln -sf /usr/share/dhcpcd/hooks/10-wpa_supplicant /usr/lib/dhcpcd/dhcpcd-hooks
+            ln -sf /etc/sv/dhcpcd                            /var/service
+            ln -sf /etc/sv/mdev                              /var/service
+            {
+                echo 'SUBSYSTEM=drm;.*   root:video 660 *env > /tmp/.libudev-zero/uevent.\$\$'
+                echo 'SUBSYSTEM=input;.* root:input 660 *env > /tmp/.libudev-zero/uevent.\$\$'
+            } >> /etc/mdev.conf" \
+            || panic "Failed enabling services"
 
     print "Remove orphans"
-    chroot_exec "
-        while kiss o | grep -qv metapkg; do \
-            kiss r \`kiss o | grep -v metapkg | tr '\\n' ' '\`; \
-        done
-        kiss r metapkg" \
-        || panic "Failed to remove orphans"
+        chroot_exec "
+            while kiss o | grep -qv metapkg; do \
+                kiss r \`kiss o | grep -v metapkg | tr '\\n' ' '\`; \
+            done
+            kiss r metapkg" \
+            || panic "Failed to remove orphans"
 }
 
 make_iso()
 {
     print "Preparing isolinux files"
-    for dir in isolinux boot; do
-        mkdir -p "$isodir/$dir"
-    done
+        for dir in isolinux boot; do
+            mkdir -p "$isodir/$dir"
+        done
 
-    cp "$filesdir/isolinux.cfg" "$isodir/isolinux"
-    for file in $isolinux_files; do
-        cp "/usr/lib/syslinux/$file" "$isodir/isolinux"
-    done
+        cp "$filesdir/isolinux.cfg" "$isodir/isolinux"
+        for file in $isolinux_files; do
+            cp "/usr/lib/syslinux/$file" "$isodir/isolinux"
+        done
     
     print "Squashing root filesystem"
-    mksquashfs \
-        "$rootfsdir" \
-        "$isodir/kiss-rootfs.sfs" \
-        -comp xz \
-        -b 1024K \
-        -Xbcj x86 \
-        -e "$rootfsdir/boot/vmlinuz" \
-        -e "$rootfsdir/etc/profile.d/kiss-live.sh" \
-        -e "$rootfsdir/root/.cache" \
-        -e "$rootfsdir/usr/share/licenses" \
-        -e "$rootfsdir/var/db/kiss/repo" \
-        -e "$rootfsdir/var/db/kiss/community" \
-        -e "$rootfsdir/var/db/kiss/live" \
-        2>/dev/null \
-        || panic "Failed create sfs root filesystem"
-            
-    cp "$rootfsdir/boot/vmlinuz" "$isodir/boot/vmlinuz" \
-        || panic "Failed copying kernel"
+        mksquashfs \
+            "$rootfsdir" \
+            "$isodir/kiss-rootfs.sfs" \
+            -comp xz \
+            -b 1024K \
+            -Xbcj x86 \
+            -e "$rootfsdir/boot/vmlinuz" \
+            -e "$rootfsdir/etc/profile.d/kiss-live.sh" \
+            -e "$rootfsdir/root/.cache" \
+            -e "$rootfsdir/usr/share/licenses" \
+            -e "$rootfsdir/var/db/kiss/repo" \
+            -e "$rootfsdir/var/db/kiss/community" \
+            -e "$rootfsdir/var/db/kiss/live" \
+            2>/dev/null \
+            || panic "Failed create sfs root filesystem"
+                
+        cp "$rootfsdir/boot/vmlinuz" "$isodir/boot/vmlinuz" \
+            || panic "Failed copying kernel"
 
     print "Creating initrd"
-    kernver=$(file "$rootfsdir/boot/vmlinuz" | cut -d ' ' -f9)
-    mkdir -p "$rootfsdir/etc/tinyramfs"
-    mkdir -p "$rootfsdir/usr/share/tinyramfs/hooks"
-    cp -r "$hooksdir/tinyramfs" "$rootfsdir/usr/share/tinyramfs/hooks/live"
-    cp -r "$filesdir/config"    "$rootfsdir/etc/tinyramfs/config"
+        kernver=$(file "$rootfsdir/boot/vmlinuz" | cut -d ' ' -f9)
+        mkdir -p "$rootfsdir/etc/tinyramfs"
+        mkdir -p "$rootfsdir/usr/share/tinyramfs/hooks"
+        cp -r "$hooksdir/tinyramfs" "$rootfsdir/usr/share/tinyramfs/hooks/live"
+        install -D "$filesdir/config" "$rootfsdir/etc/tinyramfs"
 
-    sed -i "s/@ISOLABEL@/$isolabel/g" \
-        "$rootfsdir/etc/tinyramfs/config" \
-        || panic "Failed preparing tinyramfs"
+        sed -i "s/@ISOLABEL@/$isolabel/g" \
+            "$rootfsdir/etc/tinyramfs/config" \
+            || panic "Failed preparing tinyramfs"
 
-    chroot_exec "
-        kiss b tinyramfs && kiss i tinyramfs
-        kiss a util-linux /usr/bin/mount
-        debug=$debug tinyramfs -k $kernver -o /boot/initrd" \
-    || panic "Failed create initramfs"
-    
-    cp "$rootfsdir/boot/initrd" "$isodir/boot/initrd" \
-        || panic "Failed copying initrd"
+        chroot_exec "
+            kiss b tinyramfs && kiss i tinyramfs
+            kiss a util-linux /usr/bin/mount
+            debug=$debug tinyramfs -k $kernver -o /boot/initrd" \
+            || panic "Failed create initramfs"
+        
+        cp "$rootfsdir/boot/initrd" "$isodir/boot/initrd" \
+            || panic "Failed copying initrd"
     
     print "Setup UEFI mode"
-    for dir in grub/fonts grub/x86_64-efi EFI; do
-        mkdir -p "$isodir/boot/$dir"
-    done
+        for dir in grub/fonts grub/x86_64-efi EFI; do
+            mkdir -p "$isodir/boot/$dir"
+        done
 
-    cp "$filesdir/unicode.pf2" "$isodir/boot/grub/fonts"
-    echo "set prefix=/boot/grub" > "$isodir/boot/grub-early.cfg"
-    cp -a /usr/lib/grub/x86_64-efi "$isodir/boot/grub" \
-        || panic "Failed copying efi files"
+        cp "$filesdir/unicode.pf2" "$isodir/boot/grub/fonts"
+        echo "set prefix=/boot/grub" > "$isodir/boot/grub-early.cfg"
+        cp -a /usr/lib/grub/x86_64-efi "$isodir/boot/grub" \
+            || panic "Failed copying efi files"
 
-    cp "$filesdir/grub.cfg" "$isodir/boot/grub/"
+        cp "$filesdir/grub.cfg" "$isodir/boot/grub/"
 
-    grub-mkimage \
-        -c "$isodir/boot/grub-early.cfg" \
-        -o "$isodir/boot/EFI/bootx64.efi" \
-        -O x86_64-efi \
-        -p "" iso9660 normal search search_fs_file
+        grub-mkimage \
+            -c "$isodir/boot/grub-early.cfg" \
+            -o "$isodir/boot/EFI/bootx64.efi" \
+            -O x86_64-efi \
+            -p "" iso9660 normal search search_fs_file
 
-    dd if=/dev/zero of="$isodir/boot/efiboot.img" count=4096
-    mkdosfs -n KISS-UEFI "$isodir/boot/efiboot.img" \
-        || panic "Failed create mkdosfs image"
+        dd if=/dev/zero of="$isodir/boot/efiboot.img" count=4096
+        mkdosfs -n KISS-UEFI "$isodir/boot/efiboot.img" \
+            || panic "Failed create mkdosfs image"
 
-    mkdir -p "$isodir/boot/efiboot"
-    mount -o loop "$isodir/boot/efiboot.img" "$isodir/boot/efiboot" \
-        || panic "Failed mount efiboot.img"
+        mkdir -p "$isodir/boot/efiboot"
+        mount -o loop "$isodir/boot/efiboot.img" "$isodir/boot/efiboot" \
+            || panic "Failed mount efiboot.img"
 
-    mkdir -p "$isodir/boot/efiboot/EFI/boot"
-    cp "$isodir/boot/EFI/bootx64.efi" "$isodir/boot/efiboot/EFI/boot"
-    umount "$isodir/boot/efiboot"
-    rm -rf "$isodir/boot/efiboot"
+        mkdir -p "$isodir/boot/efiboot/EFI/boot"
+        cp "$isodir/boot/EFI/bootx64.efi" "$isodir/boot/efiboot/EFI/boot"
+        umount "$isodir/boot/efiboot"
+        rm -rf "$isodir/boot/efiboot"
 
     print "Creating iso"
-    rm -f "$isolabel.iso" "$isolabel.iso.md5" "$isolabel.iso.sha1"
-    xorriso \
-        -as mkisofs \
-        -isohybrid-mbr /usr/lib/syslinux/isohdpfx.bin \
-        -c isolinux/boot.cat \
-        -b isolinux/isolinux.bin \
-        -no-emul-boot \
-        -boot-load-size 4 \
-        -boot-info-table \
-        -eltorito-alt-boot \
-        -e boot/efiboot.img \
-        -no-emul-boot \
-        -isohybrid-gpt-basdat \
-        -volid "$isolabel" \
-        -o "$here/$isolabel.iso" "$isodir" \
-        || panic "Failed creating iso"
+        rm -f "$isolabel.iso" "$isolabel.iso.md5" "$isolabel.iso.sha1"
+        xorriso \
+            -as mkisofs \
+            -isohybrid-mbr /usr/lib/syslinux/isohdpfx.bin \
+            -c isolinux/boot.cat \
+            -b isolinux/isolinux.bin \
+            -no-emul-boot \
+            -boot-load-size 4 \
+            -boot-info-table \
+            -eltorito-alt-boot \
+            -e boot/efiboot.img \
+            -no-emul-boot \
+            -isohybrid-gpt-basdat \
+            -volid "$isolabel" \
+            -o "$here/$isolabel.iso" "$isodir" \
+            || panic "Failed creating iso"
 
     print "Generate md5sum"
-    md5sum "$isolabel.iso" > "$here/$isolabel.iso.md5"
+        md5sum  "$isolabel.iso" > "$here/$isolabel.iso.md5"
 
     print "Generate sha1sum"
-    sha1sum "$isolabel.iso" > "$here/$isolabel.iso.sha1"
+        sha1sum "$isolabel.iso" > "$here/$isolabel.iso.sha1"
 }
 
 # int main()
