@@ -120,28 +120,14 @@ prepare_rootfs()
 
     print "Preparing rootfs enviroment"
         cp -r "$repodir"        "$rootfsdir/var/db/kiss/live"
-        install -D "$filesdir/issue"      -t "$rootfsdir/etc"
-        install -D "$hooksdir/kiss/hooks" -t "$rootfsdir/root/.cache"
+        install -D "$filesdir/issue"        -t "$rootfsdir/etc"
+        install -D "$hooksdir/kiss/hooks"   -t "$rootfsdir/root/.cache"
+        install -D "$filesdir/kiss-live.sh" -t "$rootfsdir/etc/profile.d"
 
-        chroot_exec "
-            git clone $url/repo      /var/db/kiss/repo/
-            git clone $url/community /var/db/kiss/community/
-            {
-                echo 'export KISS_SU=su'
-                echo 'export KISS_PROMPT=0'
-                echo 'export KISS_HOOK=/root/.cache/hooks'
-                echo 'export KISS_PATH=/var/db/kiss/repo/core'
-                echo 'KISS_PATH=\$KISS_PATH:/var/db/kiss/repo/extra'
-                echo 'KISS_PATH=\$KISS_PATH:/var/db/kiss/repo/xorg'
-                echo 'KISS_PATH=\$KISS_PATH:/var/db/kiss/community/community'
-                echo 'KISS_PATH=\$KISS_PATH:/var/db/kiss/live'
-                echo 'export CFLAGS=\"-march=x86-64 -mtune=generic -pipe -Os\"'
-                echo 'export CXXFLAGS=\"\$CFLAGS\"'
-                echo 'export MAKEFLAGS=\"-j4\"'
-            } >> /etc/profile.d/kiss-live.sh" \
-            || panic "Failed preparing rootfs enviroment"
+        git clone "$url/repo"      "$rootfsdir/var/db/kiss/repo"
+        git clone "$url/community" "$rootfsdir/var/db/kiss/community"
 
-    print "Enable login's"
+    print "Enable login"
         chroot_exec "
             adduser -D kiss
             echo kiss:kiss | chpasswd kiss"
@@ -150,14 +136,12 @@ prepare_rootfs()
         chroot_exec "kiss u && kiss u" || panic "Failed updating system"
 
     print "Rebuild all"
-        chroot_exec "
-            cd /var/db/kiss/installed
-            kiss b *" || panic "Failed to rebuild system"
+        chroot_exec "cd /var/db/kiss/installed && kiss b *" \
+            || panic "Failed to rebuild system"
 
-    [ "$packages" ] && {
-        chroot_exec "echo $packages | sed 's/,/\\n/g' | tee -a /var/db/kiss/live/metapkg/depends" \
-            || panic "Failed installing additional packages"
-    }
+        [ "$packages" ] && {
+            echo "$packages" | sed 's/,/\\n/g' | tee -a "$rootfsdir/var/db/kiss/live/metapkg/depends"
+        } || panic "Failed adding additional packages"
 
     print "Installing packages"
         chroot_exec "kiss b metapkg && kiss i metapkg" \
@@ -186,13 +170,9 @@ prepare_rootfs()
 make_iso()
 {
     print "Preparing isolinux files"
-        for dir in isolinux boot; do
-            mkdir -p "$isodir/$dir"
-        done
-
-        cp "$filesdir/isolinux.cfg" "$isodir/isolinux"
+        install -D "$filesdir/isolinux.cfg" -t "$isodir/isolinux"
         for file in $isolinux_files; do
-            cp "/usr/lib/syslinux/$file" "$isodir/isolinux"
+            install -D "/usr/lib/syslinux/$file" -t "$isodir/isolinux"
         done
     
     print "Squashing root filesystem"
@@ -202,50 +182,44 @@ make_iso()
             -comp xz \
             -b 1024K \
             -Xbcj x86 \
-            -e "$rootfsdir/boot/vmlinuz" \
             -e "$rootfsdir/etc/profile.d/kiss-live.sh" \
-            -e "$rootfsdir/root/.cache" \
+            -e "$rootfsdir/var/db/kiss/community" \
             -e "$rootfsdir/usr/share/licenses" \
             -e "$rootfsdir/var/db/kiss/repo" \
-            -e "$rootfsdir/var/db/kiss/community" \
             -e "$rootfsdir/var/db/kiss/live" \
+            -e "$rootfsdir/boot/vmlinuz" \
+            -e "$rootfsdir/root/.cache" \
             2>/dev/null \
             || panic "Failed create sfs root filesystem"
                 
-        cp "$rootfsdir/boot/vmlinuz" "$isodir/boot/vmlinuz" \
+        install -D "$rootfsdir/boot/vmlinuz" -t "$isodir/boot/vmlinuz" \
             || panic "Failed copying kernel"
 
     print "Creating initrd"
-        kernver=$(file "$rootfsdir/boot/vmlinuz" | cut -d ' ' -f9)
-        mkdir -p "$rootfsdir/etc/tinyramfs"
         mkdir -p "$rootfsdir/usr/share/tinyramfs/hooks"
         cp -r "$hooksdir/tinyramfs" "$rootfsdir/usr/share/tinyramfs/hooks/live"
-        install -D "$filesdir/config" "$rootfsdir/etc/tinyramfs"
+        install -D "$filesdir/config" -t "$rootfsdir/etc/tinyramfs"
 
-        sed -i "s/@ISOLABEL@/$isolabel/g" \
-            "$rootfsdir/etc/tinyramfs/config" \
+        sed -i "s/@ISOLABEL@/$isolabel/g" "$rootfsdir/etc/tinyramfs/config" \
             || panic "Failed preparing tinyramfs"
 
         chroot_exec "
             kiss b tinyramfs && kiss i tinyramfs
-            kiss a util-linux /usr/bin/mount
-            debug=$debug tinyramfs -k $kernver -o /boot/initrd" \
+            debug=$debug tinyramfs -o /boot/initrd" \
             || panic "Failed create initramfs"
         
-        cp "$rootfsdir/boot/initrd" "$isodir/boot/initrd" \
+        install -D "$rootfsdir/boot/initrd" -t "$isodir/boot" \
             || panic "Failed copying initrd"
     
     print "Setup UEFI mode"
-        for dir in grub/fonts grub/x86_64-efi EFI; do
-            mkdir -p "$isodir/boot/$dir"
-        done
+        {
+            echo "set prefix=/boot/grub" >        "$isodir/boot/grub-early.cfg"
+            cp -a /usr/lib/grub/x86_64-efi        "$isodir/boot/grub"
+            install -D "$filesdir/unicode.pf2" -t "$isodir/boot/grub/fonts"
+            install -D "$filesdir/grub.cfg"    -t "$isodir/boot/grub"
+        } || panic "Failed copying efi files"
 
-        cp "$filesdir/unicode.pf2" "$isodir/boot/grub/fonts"
-        echo "set prefix=/boot/grub" > "$isodir/boot/grub-early.cfg"
-        cp -a /usr/lib/grub/x86_64-efi "$isodir/boot/grub" \
-            || panic "Failed copying efi files"
-
-        cp "$filesdir/grub.cfg" "$isodir/boot/grub/"
+        mkdir -p "$isodir/boot/EFI"
 
         grub-mkimage \
             -c "$isodir/boot/grub-early.cfg" \
@@ -284,10 +258,8 @@ make_iso()
             -o "$here/$isolabel.iso" "$isodir" \
             || panic "Failed creating iso"
 
-    print "Generate md5sum"
+    print "Generate checksums"
         md5sum  "$isolabel.iso" > "$here/$isolabel.iso.md5"
-
-    print "Generate sha1sum"
         sha1sum "$isolabel.iso" > "$here/$isolabel.iso.sha1"
 }
 

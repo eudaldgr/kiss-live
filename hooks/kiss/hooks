@@ -10,20 +10,20 @@ case $TYPE in
                 install -Dm755 helper "$DEST/usr/bin/helper"
             ;;
             *)
-                rm -rf "$DEST/usr/share/bash-completion"
-                rm -rf "$DEST/usr/share/applications"
-                rm -rf "$DEST/etc/bash_completion.d"
-                rm -rf "$DEST/usr/lib/charset.alias"
-                rm -rf "$DEST/usr/share/polkit-1"
-                rm -rf "$DEST/usr/share/gettext"
-                rm -rf "$DEST/usr/share/gtk-doc"
-                rm -rf "$DEST/usr/share/locale"
-                rm -rf "$DEST/usr/share/sounds"
-                rm -rf "$DEST/usr/share/icons"
-                rm -rf "$DEST/usr/share/info"
-                rm -rf "$DEST/usr/share/doc"
-                rm -rf "$DEST/usr/share/man"
-                rm -rf "$DEST/usr/share/zsh"
+                rm -rf "$DEST/usr/share/bash-completion" \
+                       "$DEST/usr/share/applications" \
+                       "$DEST/etc/bash_completion.d" \
+                       "$DEST/usr/lib/charset.alias" \
+                       "$DEST/usr/share/polkit-1" \
+                       "$DEST/usr/share/gettext" \
+                       "$DEST/usr/share/gtk-doc" \
+                       "$DEST/usr/share/locale" \
+                       "$DEST/usr/share/sounds" \
+                       "$DEST/usr/share/icons" \
+                       "$DEST/usr/share/info" \
+                       "$DEST/usr/share/doc" \
+                       "$DEST/usr/share/man" \
+                       "$DEST/usr/share/zsh"
             ;;
         esac
     ;;
@@ -32,6 +32,9 @@ case $TYPE in
             sls)
                 chown root:kiss /usr/bin/sls
                 chmod gu+s      /usr/bin/sls
+            ;;
+            util-linux)
+                kiss a util-linux /usr/bin/mount
             ;;
         esac
      ;;
