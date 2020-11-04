@@ -139,11 +139,9 @@ prepare_rootfs()
         chroot_exec "cd /var/db/kiss/installed && kiss b *" \
             || panic "Failed to rebuild system"
 
-        # false positive
-        # shellcheck disable=2015
         [ "$packages" ] && {
             echo "$packages" | sed 's/,/\\n/g' | tee -a "$rootfsdir/var/db/kiss/live/metapkg/depends"
-        } || panic "Failed adding additional packages"
+        }
 
     print "Installing packages"
         chroot_exec "kiss b metapkg && kiss i metapkg" \
@@ -237,8 +235,7 @@ make_iso()
         mount -o loop "$isodir/boot/efiboot.img" "$isodir/boot/efiboot" \
             || panic "Failed mount efiboot.img"
 
-        mkdir -p "$isodir/boot/efiboot/EFI/boot"
-        cp "$isodir/boot/EFI/bootx64.efi" "$isodir/boot/efiboot/EFI/boot"
+        install -D "$isodir/boot/EFI/bootx64.efi" -t "$isodir/boot/efiboot/EFI/boot"
         umount "$isodir/boot/efiboot"
         rm -rf "$isodir/boot/efiboot"
 
