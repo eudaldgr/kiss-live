@@ -139,6 +139,8 @@ prepare_rootfs()
         chroot_exec "cd /var/db/kiss/installed && kiss b *" \
             || panic "Failed to rebuild system"
 
+        # false positive
+        # shellcheck disable=2015
         [ "$packages" ] && {
             echo "$packages" | sed 's/,/\\n/g' | tee -a "$rootfsdir/var/db/kiss/live/metapkg/depends"
         } || panic "Failed adding additional packages"
