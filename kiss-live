@@ -192,7 +192,7 @@ make_iso()
             2>/dev/null \
             || panic "Failed create sfs root filesystem"
                 
-        install -D "$rootfsdir/boot/vmlinuz" -t "$isodir/boot/vmlinuz" \
+        install -D "$rootfsdir/boot/vmlinuz" -t "$isodir/boot" \
             || panic "Failed copying kernel"
 
     print "Creating initrd"
