@@ -196,6 +196,7 @@ make_iso()
             || panic "Failed copying kernel"
 
     print "Creating initrd"
+        kernver=$(file "$rootfsdir/boot/vmlinuz" | cut -d ' ' -f9)
         mkdir -p "$rootfsdir/usr/share/tinyramfs/hooks"
         cp -r "$hooksdir/tinyramfs" "$rootfsdir/usr/share/tinyramfs/hooks/live"
         install -D "$filesdir/config" -t "$rootfsdir/etc/tinyramfs"
@@ -205,7 +206,7 @@ make_iso()
 
         chroot_exec "
             kiss b tinyramfs && kiss i tinyramfs
-            debug=$debug tinyramfs -o /boot/initrd" \
+            debug=$debug tinyramfs -k $kernver -o /boot/initrd" \
             || panic "Failed create initramfs"
         
         install -D "$rootfsdir/boot/initrd" -t "$isodir/boot" \
