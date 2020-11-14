@@ -167,11 +167,7 @@ prepare_rootfs()
         chroot_exec "
             ln -sf /usr/share/dhcpcd/hooks/10-wpa_supplicant /usr/lib/dhcpcd/dhcpcd-hooks
             ln -sf /etc/sv/dhcpcd                            /var/service
-            ln -sf /etc/sv/mdev                              /var/service
-            {
-                echo 'SUBSYSTEM=drm;.*   root:video 660 *env > /tmp/.libudev-zero/uevent.\$\$'
-                echo 'SUBSYSTEM=input;.* root:input 660 *env > /tmp/.libudev-zero/uevent.\$\$'
-            } >> /etc/mdev.conf" \
+            ln -sf /etc/sv/mdev                              /var/service" \
             || panic "Failed enabling services"
 
     print "Remove orphans"

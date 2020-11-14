@@ -1,7 +1,6 @@
 baseinit
 curl
 dhcpcd
-libudev-zero
 linux
 wpa_supplicant
 xz
