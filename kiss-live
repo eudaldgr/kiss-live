@@ -237,7 +237,7 @@ make_iso()
             --output="$isodir/boot/efi/bootx64.efi" \
             --format="x86_64-efi" \
             --compression="xz" \
-            "$grub_mod"
+            ${grub_mod}
 
         dd if=/dev/zero of="$isodir/boot/efiboot.img" count=4096
         mkdosfs -n KISS-UEFI "$isodir/boot/efiboot.img" \
