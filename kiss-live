@@ -37,24 +37,34 @@ check_depends()
     fi
 }
 
+cleanup()
+{
+    [ ! -z "$pkgdir" ] && umount "$rootfsdir/root/.cache/kiss/sources"
+    [ ! -z "$bindir" ] && umount "$rootfsdir/root/.cache/kiss/bin"
+    [ "$debug" = 1 ]   || rm -rf "$rootfsdir" "$isodir" "$tmpdir"
+}
+
 usage()
 {
     cat << EOF
 usage: ${0##*/} [options ...]
-       -b, --build   <file>           set config file path
-                                      default is ./build.cfg
+       -c, --config   <file>           set config file path
+                                       default is ./build.cfg
 
-       -c, --cache   <dir>            set cache directory
-                                      default is inside chroot
-                                    
-       -o, --output  <name>           set livecd output path
-                                      default is kiss-live-\$ver
-                                    
-       -p, --package <pkg1,pkg2,...>  set packages to install
-                                      default are <none>
+       -s, --sources  <dir>            set sources directory
+                                       default is inside chroot
 
-       -d, --debug                    enable debug mode
-       -h, --help                     show this help
+       -b, --binaries <dir>            set binaries directory
+                                       default is inside chroot
+                                    
+       -o, --output   <name>           set livecd output path
+                                       default is kiss-live-\$ver
+                                    
+       -p, --package  <pkg1,pkg2,...>  set packages to install
+                                       default are <none>
+
+       -d, --debug                     enable debug mode
+       -h, --help                      show this help
 
 EOF
 }
@@ -62,11 +72,14 @@ EOF
 prepare_environment()
 {
     while [ "$1" ]; do case "$1" in
-        -b | --build)
+        -c | --config)
             buildcfg="${2:?}"; shift 2
         ;;
-        -c | --cache)
-            cachedir="${2:?}"; shift 2
+        -s | --sources)
+            pkgdir="${2:?}"; shift 2
+        ;;
+        -b | --binaries)
+            bindir="${2:?}"; shift 2
         ;;
         -o | --output)
             isolabel="${2:?}"; shift 2
@@ -95,17 +108,19 @@ prepare_environment()
     rm    -rf "$rootfsdir" "$isodir" #"$tmpdir"
     mkdir -p  "$rootfsdir" "$isodir" "$tmpdir"
 
-    [ ! -z "$cachedir" ] && {
-        trap 'umount $rootfsdir/root/.cache/kiss/sources' EXIT INT
-
-        print "Mounting cache dir"
-            mkdir -p "$rootfsdir/root/.cache/kiss/sources"
-            mount --bind "$cachedir" "$rootfsdir/root/.cache/kiss/sources"
+    [ ! -z "$pkgdir" ] && {
+        mkdir -p "$rootfsdir/root/.cache/kiss/sources"
+        mount --bind "$pkgdir" "$rootfsdir/root/.cache/kiss/sources"
     }
 
-    # false positive
-    # shellcheck disable=2015
-    [ "$debug" = 1 ] && set -x || trap 'rm -rf $rootfsdir $isodir $tmpdir' EXIT INT
+    [ ! -z "$bindir" ] && {
+        mkdir -p "$rootfsdir/root/.cache/kiss/bin"
+        mount --bind "$bindir" "$rootfsdir/root/.cache/kiss/bin"
+    }
+
+    trap 'cleanup' EXIT INT
+
+    [ "$debug" = 1 ] && set -x
 }
 
 prepare_rootfs()
@@ -129,14 +144,15 @@ prepare_rootfs()
 
     print "Enable login"
         chroot_exec "
-            adduser -D kiss
-            echo kiss:kiss | chpasswd kiss"
+            echo root:root | chpasswd root"
 
     print "Updating system"
         chroot_exec "kiss u && kiss u" || panic "Failed updating system"
 
     print "Rebuild all"
-        chroot_exec "cd /var/db/kiss/installed && kiss b *" \
+        chroot_exec "
+            cd /var/db/kiss/installed
+            kiss i * || kiss b *" \
             || panic "Failed to rebuild system"
 
         [ "$packages" ] && {

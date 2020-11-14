@@ -1,4 +1,5 @@
 export KISS_SU=su
+export KISS_COMPRESS=xz
 export KISS_PROMPT=0
 export KISS_HOOK=/root/.cache/hooks
 export KISS_PATH=/var/db/kiss/repo/core

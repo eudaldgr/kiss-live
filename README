@@ -34,17 +34,20 @@ Usage
 ________________________________________________________________________________
 
 usage: kiss-live [options ...]
-       -b, --build   <file>           set config file path
-                                      default is ./build.cfg
+       -c, --config   <file>           set config file path
+                                       default is ./build.cfg
 
-       -c, --cache   <dir>            set cache directory
-                                      default is inside chroot
-                                    
-       -o, --output  <name>           set livecd output path
-                                      default is kiss-live-$ver
-                                    
-       -p, --package <pkg1,pkg2,...>  set packages to install
-                                      default are <none>
+       -s, --sources  <dir>            set sources directory
+                                       default is inside chroot
 
-       -d, --debug                    enable debug mode
-       -h, --help                     show this help
+       -b, --binaries <dir>            set binaries directory
+                                       default is inside chroot
+                                    
+       -o, --output   <name>           set livecd output path
+                                       default is kiss-live-$ver
+                                    
+       -p, --package  <pkg1,pkg2,...>  set packages to install
+                                       default are <none>
+
+       -d, --debug                     enable debug mode
+       -h, --help                      show this help

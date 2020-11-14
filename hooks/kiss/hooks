@@ -27,15 +27,4 @@ case $TYPE in
             ;;
         esac
     ;;
-    post-install)
-        case $PKG in
-            sls)
-                chown root:kiss /usr/bin/sls
-                chmod gu+s      /usr/bin/sls
-            ;;
-            util-linux)
-                kiss a util-linux /usr/bin/mount
-            ;;
-        esac
-     ;;
 esac
