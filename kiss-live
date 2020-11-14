@@ -229,27 +229,27 @@ make_iso()
         echo "set prefix=(\$root)/boot/grub"                   >> "$isodir/boot/grub-early.cfg"
         install -D "$filesdir/grub.cfg" -t "$isodir/boot/grub"
 
-        mkdir -p "$isodir/boot/efi"
+        mkdir -p "$isodir/efi/boot"
 
         grub-mkimage \
             --config="$isodir/boot/grub-early.cfg" \
             --prefix="/boot/grub" \
-            --output="$isodir/boot/efi/bootx64.efi" \
+            --output="$isodir/efi/boot/bootx64.efi" \
             --format="x86_64-efi" \
             --compression="xz" \
             ${grub_mod}
 
-        dd if=/dev/zero of="$isodir/boot/efiboot.img" count=4096
-        mkdosfs -n KISS-UEFI "$isodir/boot/efiboot.img" \
+        dd if=/dev/zero of="$isodir/boot/grub/efi.img" count=4096
+        mkdosfs -n KISS-UEFI "$isodir/boot/grub/efi.img" \
             || panic "Failed create mkdosfs image"
 
-        mkdir -p "$isodir/boot/efiboot"
-        mount -o loop "$isodir/boot/efiboot.img" "$isodir/boot/efiboot" \
-            || panic "Failed mount efiboot.img"
+        mkdir -p "$isodir/boot/grub/efiboot"
+        mount -o loop "$isodir/boot/grub/efi.img" "$isodir/boot/grub/efiboot" \
+            || panic "Failed mount efi.img"
 
-        install -D "$isodir/boot/efi/bootx64.efi" -t "$isodir/boot/efiboot/efi/boot"
-        umount "$isodir/boot/efiboot"
-        rm -rf "$isodir/boot/efiboot"
+        install -D "$isodir/efi/boot/bootx64.efi" -t "$isodir/boot/grub/efiboot/efi/boot"
+        umount "$isodir/boot/grub/efiboot"
+        rm -rf "$isodir/boot/grub/efiboot"
 
     print "Creating iso"
         rm -f "$isolabel.iso" "$isolabel.iso.md5" "$isolabel.iso.sha1"
@@ -262,7 +262,7 @@ make_iso()
             -boot-load-size 4 \
             -boot-info-table \
             -eltorito-alt-boot \
-            -e boot/efiboot.img \
+            -e boot/grub/efi.img \
             -no-emul-boot \
             -isohybrid-gpt-basdat \
             -volid "$isolabel" \
