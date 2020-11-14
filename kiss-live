@@ -230,7 +230,9 @@ make_iso()
         install -D "$filesdir/grub.cfg" -t "$isodir/boot/grub"
 
         mkdir -p "$isodir/efi/boot"
-
+        
+        # false positive
+        # shellcheck disable=2086
         grub-mkimage \
             --config="$isodir/boot/grub-early.cfg" \
             --prefix="/boot/grub" \
