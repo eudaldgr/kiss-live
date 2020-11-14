@@ -5,10 +5,6 @@ case $TYPE in
         case $PKG in
             kiss) # ensure we keep docs
             ;;
-            libudev-zero)
-                cc contrib/helper.c -o helper
-                install -Dm755 helper "$DEST/usr/bin/helper"
-            ;;
             *)
                 rm -rf "$DEST/usr/share/bash-completion" \
                        "$DEST/usr/share/applications" \
