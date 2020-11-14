@@ -228,21 +228,20 @@ make_iso()
         install -D "$rootfsdir/boot/initrd" -t "$isodir/boot" \
             || panic "Failed copying initrd"
     
-    print "Setup UEFI mode"
-        {
-            echo "set prefix=/boot/grub" >        "$isodir/boot/grub-early.cfg"
-            cp -a /usr/lib/grub/x86_64-efi        "$isodir/boot/grub"
-            install -D "$filesdir/unicode.pf2" -t "$isodir/boot/grub/fonts"
-            install -D "$filesdir/grub.cfg"    -t "$isodir/boot/grub"
-        } || panic "Failed copying efi files"
+    print "Setup grub efi"
+        echo "search --no-floppy --set=root --label $isolabel" >  "$isodir/boot/grub-early.cfg"
+        echo "set prefix=(\$root)/boot/grub"                   >> "$isodir/boot/grub-early.cfg"
+        install -D "$filesdir/grub.cfg" -t "$isodir/boot/grub"
 
-        mkdir -p "$isodir/boot/EFI"
+        mkdir -p "$isodir/boot/efi"
 
         grub-mkimage \
-            -c "$isodir/boot/grub-early.cfg" \
-            -o "$isodir/boot/EFI/bootx64.efi" \
-            -O x86_64-efi \
-            -p "" iso9660 normal search search_fs_file
+            --config="$isodir/boot/grub-early.cfg" \
+            --prefix="/boot/grub" \
+            --output="$isodir/boot/efi/bootx64.efi" \
+            --format="x86_64-efi" \
+            --compression="xz" \
+            "$grub_mod"
 
         dd if=/dev/zero of="$isodir/boot/efiboot.img" count=4096
         mkdosfs -n KISS-UEFI "$isodir/boot/efiboot.img" \
@@ -252,7 +251,7 @@ make_iso()
         mount -o loop "$isodir/boot/efiboot.img" "$isodir/boot/efiboot" \
             || panic "Failed mount efiboot.img"
 
-        install -D "$isodir/boot/EFI/bootx64.efi" -t "$isodir/boot/efiboot/EFI/boot"
+        install -D "$isodir/boot/efi/bootx64.efi" -t "$isodir/boot/efiboot/efi/boot"
         umount "$isodir/boot/efiboot"
         rm -rf "$isodir/boot/efiboot"
 
@@ -261,8 +260,8 @@ make_iso()
         xorriso \
             -as mkisofs \
             -isohybrid-mbr /usr/lib/syslinux/isohdpfx.bin \
-            -c isolinux/boot.cat \
-            -b isolinux/isolinux.bin \
+            -eltorito-catalog isolinux/boot.cat \
+            -eltorito-boot isolinux/isolinux.bin \
             -no-emul-boot \
             -boot-load-size 4 \
             -boot-info-table \
@@ -271,7 +270,8 @@ make_iso()
             -no-emul-boot \
             -isohybrid-gpt-basdat \
             -volid "$isolabel" \
-            -o "$here/$isolabel.iso" "$isodir" \
+            -output "$here/$isolabel.iso" \
+            "$isodir" \
             || panic "Failed creating iso"
 
     print "Generate checksums"
