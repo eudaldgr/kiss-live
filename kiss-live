@@ -120,7 +120,7 @@ prepare_environment()
 
     trap 'cleanup' EXIT INT
 
-    [ "$debug" = 1 ] && set -x
+    [ "$debug" = 1 ] && { set -x; quiet=' '; }
 }
 
 prepare_rootfs()
@@ -256,6 +256,7 @@ make_iso()
     print "Creating iso"
         rm -f "$isolabel.iso" "$isolabel.iso.md5" "$isolabel.iso.sha1"
         xorriso \
+            "${quiet=-quiet}" \
             -as mkisofs \
             -isohybrid-mbr iso/boot/syslinux/isohdpfx.bin \
             -eltorito-boot boot/syslinux/isolinux.bin \
