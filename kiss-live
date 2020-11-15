@@ -260,7 +260,7 @@ make_iso()
         xorriso \
             "${quiet=-quiet}" \
             -as mkisofs \
-            -isohybrid-mbr iso/boot/syslinux/isohdpfx.bin \
+            -isohybrid-mbr "$isodir/boot/syslinux/isohdpfx.bin" \
             -eltorito-boot boot/syslinux/isolinux.bin \
             -eltorito-catalog boot/syslinux/boot.cat \
             -no-emul-boot \
