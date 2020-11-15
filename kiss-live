@@ -120,6 +120,8 @@ prepare_environment()
 
     trap 'cleanup' EXIT INT
 
+    # false positive
+    # shellcheck disable=2015
     [ "$debug" = 1 ] && { set -x; quiet=' '; } ||:
 }
 
