@@ -121,7 +121,7 @@ prepare_environment()
 
     # false positive
     # shellcheck disable=2015
-    [ "$debug" = 1 ] && { set -x; quiet=''; } || :
+    [ "$debug" = 1 ] && set -x || :
 }
 
 prepare_rootfs()
@@ -257,7 +257,6 @@ make_iso()
     print "Creating iso"
         rm -f "$isolabel.iso" "$isolabel.iso.md5" "$isolabel.iso.sha1"
         xorriso \
-            "${quiet=-quiet}" \
             -as mkisofs \
             -isohybrid-mbr "$isodir/boot/syslinux/isohdpfx.bin" \
             -eltorito-boot boot/syslinux/isolinux.bin \
