@@ -122,7 +122,7 @@ prepare_environment()
 
     # false positive
     # shellcheck disable=2015
-    [ "$debug" = 1 ] && { set -x; quiet=' '; } ||:
+    [ "$debug" = 1 ] && { set -x; quiet=''; } ||:
 }
 
 prepare_rootfs()
