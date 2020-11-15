@@ -120,7 +120,7 @@ prepare_environment()
 
     trap 'cleanup' EXIT INT
 
-    [ "$debug" = 1 ] && { set -x; quiet=' '; }
+    [ "$debug" = 1 ] && { set -x; quiet=' '; } ||:
 }
 
 prepare_rootfs()
