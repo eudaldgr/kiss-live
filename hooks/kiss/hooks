@@ -23,4 +23,11 @@ case $TYPE in
             ;;
         esac
     ;;
+    post-install)
+        case $PKG in
+            util-linux)
+                kiss a util-linux /usr/bin/mount
+            ;;
+        esac
+     ;;
 esac
