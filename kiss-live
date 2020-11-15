@@ -32,8 +32,7 @@ check_depends()
             [ -d "/var/db/kiss/installed/$_pkg" ] || panic "$_pkg not installed"
         done
     else
-        print "Distro not supported, errors may be expected."
-        sleep 5;
+        print "Distro not supported, errors may be expected."; sleep 5;
     fi
 }
 
@@ -76,10 +75,10 @@ prepare_environment()
             buildcfg="${2:?}"; shift 2
         ;;
         -s | --sources)
-            pkgdir="${2:?}"; shift 2
+            pkgdir="${2:?}";   shift 2
         ;;
         -b | --binaries)
-            bindir="${2:?}"; shift 2
+            bindir="${2:?}";   shift 2
         ;;
         -o | --output)
             isolabel="${2:?}"; shift 2
@@ -122,7 +121,7 @@ prepare_environment()
 
     # false positive
     # shellcheck disable=2015
-    [ "$debug" = 1 ] && { set -x; quiet=''; } ||:
+    [ "$debug" = 1 ] && { set -x; quiet=''; } || :
 }
 
 prepare_rootfs()

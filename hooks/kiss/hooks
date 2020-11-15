@@ -3,8 +3,7 @@
 case $TYPE in
     post-build)
         case $PKG in
-            kiss) # ensure we keep docs
-            ;;
+            kiss) ;; # ensure we keep docs
             *)
                 rm -rf "$DEST/usr/share/bash-completion" \
                        "$DEST/usr/share/applications" \
