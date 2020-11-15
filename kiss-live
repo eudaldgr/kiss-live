@@ -182,9 +182,9 @@ prepare_rootfs()
 make_iso()
 {
     print "Preparing isolinux files"
-        install -D "$filesdir/isolinux.cfg" -t "$isodir/isolinux"
+        install -D "$filesdir/syslinux.cfg" -t "$isodir/boot/syslinux"
         for file in $isolinux_files; do
-            install -D "/usr/lib/syslinux/$file" -t "$isodir/isolinux"
+            install -D "/usr/lib/syslinux/$file" -t "$isodir/boot/syslinux"
         done
     
     print "Squashing root filesystem"
@@ -225,8 +225,8 @@ make_iso()
             || panic "Failed copying initrd"
     
     print "Setup grub efi"
-        echo "search --no-floppy --set=root --label $isolabel" >  "$isodir/boot/grub-early.cfg"
-        echo "set prefix=(\$root)/boot/grub"                   >> "$isodir/boot/grub-early.cfg"
+        echo "search --no-floppy --set=root --label $isolabel" >  "$tmpdir/grub-early.cfg"
+        echo "set prefix=(\$root)/boot/grub"                   >> "$tmpdir/grub-early.cfg"
         install -D "$filesdir/grub.cfg" -t "$isodir/boot/grub"
 
         mkdir -p "$isodir/efi/boot"
@@ -234,7 +234,7 @@ make_iso()
         # false positive
         # shellcheck disable=2086
         grub-mkimage \
-            --config="$isodir/boot/grub-early.cfg" \
+            --config="$tmpdir/grub-early.cfg" \
             --prefix="/boot/grub" \
             --output="$isodir/efi/boot/bootx64.efi" \
             --format="x86_64-efi" \
@@ -257,9 +257,9 @@ make_iso()
         rm -f "$isolabel.iso" "$isolabel.iso.md5" "$isolabel.iso.sha1"
         xorriso \
             -as mkisofs \
-            -isohybrid-mbr /usr/lib/syslinux/isohdpfx.bin \
-            -eltorito-catalog isolinux/boot.cat \
-            -eltorito-boot isolinux/isolinux.bin \
+            -isohybrid-mbr iso/boot/syslinux/isohdpfx.bin \
+            -eltorito-boot boot/syslinux/isolinux.bin \
+            -eltorito-catalog boot/syslinux/boot.cat \
             -no-emul-boot \
             -boot-load-size 4 \
             -boot-info-table \
