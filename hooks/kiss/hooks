@@ -3,22 +3,23 @@
 case $TYPE in
     post-build)
         case $PKG in
-            kiss) ;; # ensure we keep docs
+            baselayout) # ensure we keep layout as is
+            ;;
+            busybox)
+                ln -sf /etc/sv/mdev "$DEST/var/service"
+
+                cleanup
+            ;;
+            dhcpcd)
+                ln -sf /usr/share/dhcpcd/hooks/10-wpa_supplicant "$DEST/usr/lib/dhcpcd/dhcpcd-hooks"
+                ln -sf /etc/sv/dhcpcd "$DEST/var/service"
+                
+                cleanup
+            ;;
+            kiss) # ensure we keep docs
+            ;;
             *)
-                rm -rf "$DEST/usr/share/bash-completion" \
-                       "$DEST/usr/share/applications" \
-                       "$DEST/etc/bash_completion.d" \
-                       "$DEST/usr/lib/charset.alias" \
-                       "$DEST/usr/share/polkit-1" \
-                       "$DEST/usr/share/gettext" \
-                       "$DEST/usr/share/gtk-doc" \
-                       "$DEST/usr/share/locale" \
-                       "$DEST/usr/share/sounds" \
-                       "$DEST/usr/share/icons" \
-                       "$DEST/usr/share/info" \
-                       "$DEST/usr/share/doc" \
-                       "$DEST/usr/share/man" \
-                       "$DEST/usr/share/zsh"
+                cleanup
             ;;
         esac
     ;;
@@ -28,5 +29,23 @@ case $TYPE in
                 kiss a util-linux /usr/bin/mount
             ;;
         esac
-     ;;
+    ;;
 esac
+
+cleanup()
+{
+    rm -rf "$DEST/usr/share/bash-completion" \
+           "$DEST/usr/share/applications" \
+           "$DEST/etc/bash_completion.d" \
+           "$DEST/usr/lib/charset.alias" \
+           "$DEST/usr/share/polkit-1" \
+           "$DEST/usr/share/gettext" \
+           "$DEST/usr/share/gtk-doc" \
+           "$DEST/usr/share/locale" \
+           "$DEST/usr/share/sounds" \
+           "$DEST/usr/share/icons" \
+           "$DEST/usr/share/info" \
+           "$DEST/usr/share/doc" \
+           "$DEST/usr/share/man" \
+           "$DEST/usr/share/zsh"
+}
