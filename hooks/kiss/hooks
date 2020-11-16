@@ -9,17 +9,24 @@ case $TYPE in
                 cp /root/.cache/issue "$DEST/etc/issue"
             ;;
             busybox)
-                ln -sf /etc/sv/mdev "$DEST/var/service"
+                mkdir -p "$DEST/var/service"
+                ln -sf /etc/sv/mdev "$DEST/var/service/mdev"
 
                 cleanup
             ;;
             dhcpcd)
-                ln -sf /usr/share/dhcpcd/hooks/10-wpa_supplicant "$DEST/usr/lib/dhcpcd/dhcpcd-hooks"
-                ln -sf /etc/sv/dhcpcd "$DEST/var/service"
+                mkdir -p "$DEST/var/service"
+                ln -sf /usr/share/dhcpcd/hooks/10-wpa_supplicant "$DEST/usr/lib/dhcpcd/dhcpcd-hooks/10-wpa_supplicant"
+                ln -sf /etc/sv/dhcpcd "$DEST/var/service/dhcpcd"
                 
                 cleanup
             ;;
             kiss) # ensure we keep docs
+            ;;
+            linux) # save around ~5M to iso disk
+                mv "$DEST/boot/vmlinuz" /boot/vmlinuz
+
+                cleanup
             ;;
             *)
                 cleanup
