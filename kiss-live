@@ -146,13 +146,12 @@ prepare_rootfs()
         chroot_exec "kiss u" || panic "Failed updating system"
 
         # shellcheck disable=2039
-        [ "$packages" ] && {
-            base_pkgs="$base_pkgs ${packages//,/ }"
-        }
+        [ "$packages" ] && base_pkgs="$base_pkgs ${packages//,/ }"
 
     print "Build base packages"
-        chroot_exec "kiss b $base_pkgs tinyramfs" \
-            || panic "Failed to build pkg's"
+        for pkg in $base_pkgs tinyramfs; do
+            chroot_exec "kiss b $pkg" || panic "Failed to build pkg's"
+        done
 }
 
 make_iso()
