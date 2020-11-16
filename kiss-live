@@ -143,41 +143,16 @@ prepare_rootfs()
         git clone "$url/repo"      "$rootfsdir/var/db/kiss/repo"
         git clone "$url/community" "$rootfsdir/var/db/kiss/community"
 
-    print "Enable login"
-        chroot_exec "
-            echo root:root | chpasswd root"
-
     print "Updating system"
-        chroot_exec "kiss u && kiss u" || panic "Failed updating system"
+        chroot_exec "kiss u" || panic "Failed updating system"
 
-    print "Rebuild all"
-        chroot_exec "
-            cd /var/db/kiss/installed
-            kiss i * || kiss b *" \
-            || panic "Failed to rebuild system"
+#        [ "$packages" ] && {
+#            echo "$packages" | sed 's/,/\\n/g' | tee -a "$rootfsdir/var/db/kiss/live/metapkg/depends"
+#        }
 
-        [ "$packages" ] && {
-            echo "$packages" | sed 's/,/\\n/g' | tee -a "$rootfsdir/var/db/kiss/live/metapkg/depends"
-        }
-
-    print "Installing packages"
-        chroot_exec "kiss b metapkg && kiss i metapkg" \
-            || panic "Failed installing iso packages"
-
-    print "Enabling services"
-        chroot_exec "
-            ln -sf /usr/share/dhcpcd/hooks/10-wpa_supplicant /usr/lib/dhcpcd/dhcpcd-hooks
-            ln -sf /etc/sv/dhcpcd                            /var/service
-            ln -sf /etc/sv/mdev                              /var/service" \
-            || panic "Failed enabling services"
-
-    print "Remove orphans"
-        chroot_exec "
-            while kiss o | grep -qv metapkg; do \
-                kiss r \`kiss o | grep -v metapkg | tr '\\n' ' '\`; \
-            done
-            kiss r metapkg" \
-            || panic "Failed to remove orphans"
+    print "Build base packages"
+        chroot_exec "kiss b $base_pkgs" \
+            || panic "Failed to build pkg's"
 }
 
 make_iso()
@@ -187,31 +162,19 @@ make_iso()
         for file in $isolinux_files; do
             install -D "/usr/lib/syslinux/$file" -t "$isodir/boot/syslinux"
         done
-    
-    print "Squashing root filesystem"
-        mksquashfs \
-            "$rootfsdir" \
-            "$isodir/kiss-rootfs.sfs" \
-            -comp xz \
-            -b 1024K \
-            -Xbcj x86 \
-            -e "$rootfsdir/etc/profile.d/kiss-live.sh" \
-            -e "$rootfsdir/var/db/kiss/community" \
-            -e "$rootfsdir/usr/share/licenses" \
-            -e "$rootfsdir/var/db/kiss/repo" \
-            -e "$rootfsdir/var/db/kiss/live" \
-            -e "$rootfsdir/boot/vmlinuz" \
-            -e "$rootfsdir/root/.cache" \
-            2>/dev/null \
-            || panic "Failed create sfs root filesystem"
-                
+
+    print "Exporting pkgs"
+        for _pkg in "$base_pkgs"; do
+            install -D "$rootfsdir/root/.cache/kiss/bin/$_pkg@*.tar.xz" -t "$isodir/pkgs"
+        done
+
         install -D "$rootfsdir/boot/vmlinuz" -t "$isodir/boot" \
             || panic "Failed copying kernel"
 
     print "Creating initrd"
         kernver=$(file "$rootfsdir/boot/vmlinuz" | cut -d ' ' -f9)
         mkdir -p "$rootfsdir/usr/share/tinyramfs/hooks"
-        cp -r "$hooksdir/tinyramfs" "$rootfsdir/usr/share/tinyramfs/hooks/live"
+        cp -r "$hooksdir/tinyramfs" "$rootfsdir/usr/share/tinyramfs/hooks/diskless"
         install -D "$filesdir/config" -t "$rootfsdir/etc/tinyramfs"
 
         sed -i "s/@ISOLABEL@/$isolabel/g" "$rootfsdir/etc/tinyramfs/config" \
