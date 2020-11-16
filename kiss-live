@@ -146,9 +146,9 @@ prepare_rootfs()
     print "Updating system"
         chroot_exec "kiss u" || panic "Failed updating system"
 
-#        [ "$packages" ] && {
-#            echo "$packages" | sed 's/,/\\n/g' | tee -a "$rootfsdir/var/db/kiss/live/metapkg/depends"
-#        }
+        [ "$packages" ] && {
+            base_pkgs="$base_pkgs ${packages//,/ }"
+        }
 
     print "Build base packages"
         chroot_exec "kiss b $base_pkgs" \
@@ -164,7 +164,7 @@ make_iso()
         done
 
     print "Exporting pkgs"
-        for _pkg in "$base_pkgs"; do
+        for _pkg in $base_pkgs; do
             install -D "$rootfsdir/root/.cache/kiss/bin/$_pkg@*.tar.xz" -t "$isodir/pkgs"
         done
 

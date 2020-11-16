@@ -1,6 +1,0 @@
-baseinit
-curl
-dhcpcd
-linux
-wpa_supplicant
-xz
