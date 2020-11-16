@@ -136,16 +136,16 @@ prepare_rootfs()
 
     print "Preparing rootfs enviroment"
         cp -r "$repodir"        "$rootfsdir/var/db/kiss/live"
-        install -D "$filesdir/issue"        -t "$rootfsdir/etc"
+        install -D "$filesdir/issue"        -t "$rootfsdir/root/.cache"
         install -D "$hooksdir/kiss/hooks"   -t "$rootfsdir/root/.cache"
         install -D "$filesdir/kiss-live.sh" -t "$rootfsdir/etc/profile.d"
 
         git clone "$url/repo"      "$rootfsdir/var/db/kiss/repo"
-        git clone "$url/community" "$rootfsdir/var/db/kiss/community"
 
     print "Updating system"
         chroot_exec "kiss u" || panic "Failed updating system"
 
+        # shellcheck disable=2039
         [ "$packages" ] && {
             base_pkgs="$base_pkgs ${packages//,/ }"
         }

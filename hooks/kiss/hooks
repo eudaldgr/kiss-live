@@ -5,6 +5,8 @@ case $TYPE in
         case $PKG in
             baselayout) # ensure we keep layout as is
                 echo root:root | chpasswd --root "$DEST" root
+
+                cp /root/.cache/issue "$DEST/etc/issue"
             ;;
             busybox)
                 ln -sf /etc/sv/mdev "$DEST/var/service"
