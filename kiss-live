@@ -158,7 +158,7 @@ make_iso()
 {
     print "Preparing syslinux files"
         install -D "$filesdir/syslinux.cfg" -t "$isodir/boot/syslinux"
-        for file in $isolinux_files; do
+        for file in $syslinux_files; do
             install -D "/usr/lib/syslinux/$file" -t "$isodir/boot/syslinux"
         done
 
