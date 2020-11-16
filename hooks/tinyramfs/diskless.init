@@ -1,0 +1,5 @@
+#!/bin/sh
+
+[ -h "/dev/disk/by-label/$disk_label" ] || sleep 5
+
+mount -t auto -o ro "/dev/disk/by-label/$disk_label" /run/mount || panic

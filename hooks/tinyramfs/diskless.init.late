@@ -1,0 +1,7 @@
+#!/bin/sh
+
+for _pkg in $(busybox ls /run/mount/pkgs); do
+    xz -dcT 0 "/run/mount/pkgs/$_pkg" | tar xf - -C /mnt/root
+done
+
+umount /run/mount
