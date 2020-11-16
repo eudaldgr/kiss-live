@@ -1,5 +1,5 @@
 #!/bin/sh
 
-for _bin in ls tar umount xz; do
+for _bin in tar umount xz; do
     copy_binary "$_bin"
 done

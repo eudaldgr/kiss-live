@@ -3,7 +3,7 @@
 (
     cd /mnt/root || panic
 
-    for _pkg in $(ls /run/mount/pkgs); do
+    for _pkg in /run/mount/pkgs/*; do
         xz -dcT 0 "/run/mount/pkgs/$_pkg" | tar xf -
     done
 )
