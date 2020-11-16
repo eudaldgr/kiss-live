@@ -1,9 +1,7 @@
-hooks="mdev live"
+hooks="mdev diskless"
 
-root=overlay
-root_type="$root"
-root_opts="upperdir=/run/initramfs/overlayfs/write,lowerdir=/run/initramfs/system,workdir=/run/initramfs/overlayfs/work"
+root=ram
+root_type=tmpfs
+root_opts="size=25%,mode=0755"
 
-live_disk=@ISOLABEL@
-live_img_file=kiss-rootfs.sfs
-live_ram_opts="size=25%,mode=0755"
+disk_label=@ISOLABEL@
