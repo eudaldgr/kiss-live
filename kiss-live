@@ -150,7 +150,7 @@ prepare_rootfs()
 
     print "Build base packages"
         for pkg in $base_pkgs tinyramfs; do
-            chroot_exec "kiss b $pkg" || panic "Failed to build pkg's"
+            chroot_exec "kiss b $pkg && kiss i $pkg" || panic "Failed to build $pkg"
         done
 }
 
