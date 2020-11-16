@@ -4,6 +4,7 @@ case $TYPE in
     post-build)
         case $PKG in
             baselayout) # ensure we keep layout as is
+                echo root:root | chpasswd --root "$DEST" root
             ;;
             busybox)
                 ln -sf /etc/sv/mdev "$DEST/var/service"
