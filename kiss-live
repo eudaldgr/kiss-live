@@ -104,7 +104,7 @@ prepare_environment()
     # shellcheck disable=1090
     . "${buildcfg:=./build.cfg}"
 
-#    rm    -rf "$rootfsdir" "$isodir" #"$tmpdir"
+    rm    -rf "$rootfsdir" "$isodir" #"$tmpdir"
     mkdir -p  "$rootfsdir" "$isodir" "$tmpdir"
 
     [ ! -z "$pkgdir" ] && {
@@ -184,7 +184,9 @@ make_iso()
         chroot_exec "debug=$debug tinyramfs -k $kernver -o /boot/initrd" \
             || panic "Failed create initramfs"
         
-        install -D "$rootfsdir/boot/initrd" -t "$isodir/boot" \
+        xz --check=crc32 "$rootfsdir/boot/initrd"
+
+        install -D "$rootfsdir/boot/initrd.xz" -t "$isodir/boot" \
             || panic "Failed copying initrd"
     
     print "Setup grub efi"
@@ -249,6 +251,6 @@ make_iso()
 
     check_depends
     prepare_environment "$@"
-#    prepare_rootfs
+    prepare_rootfs
     make_iso
 }
