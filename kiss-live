@@ -104,7 +104,7 @@ prepare_environment()
     # shellcheck disable=1090
     . "${buildcfg:=./build.cfg}"
 
-    rm    -rf "$rootfsdir" "$isodir" #"$tmpdir"
+#    rm    -rf "$rootfsdir" "$isodir" #"$tmpdir"
     mkdir -p  "$rootfsdir" "$isodir" "$tmpdir"
 
     [ ! -z "$pkgdir" ] && {
@@ -164,7 +164,9 @@ make_iso()
 
     print "Exporting pkgs"
         for _pkg in $base_pkgs; do
-            install -D "$rootfsdir/root/.cache/kiss/bin/$_pkg@*.tar.xz" -t "$isodir/pkgs"
+            ver=$(cat $rootfsdir/var/db/kiss/installed/$_pkg/version)
+            ver=${ver// /-}
+            install -D "$rootfsdir/root/.cache/kiss/bin/$_pkg@$ver.tar.xz" -t "$isodir/pkgs"
         done
 
         install -D "$rootfsdir/boot/vmlinuz" -t "$isodir/boot" \
@@ -247,6 +249,6 @@ make_iso()
 
     check_depends
     prepare_environment "$@"
-    prepare_rootfs
+#    prepare_rootfs
     make_iso
 }
