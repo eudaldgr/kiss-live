@@ -151,13 +151,13 @@ prepare_rootfs()
         }
 
     print "Build base packages"
-        chroot_exec "kiss b $base_pkgs" \
+        chroot_exec "kiss b $base_pkgs tinyramfs" \
             || panic "Failed to build pkg's"
 }
 
 make_iso()
 {
-    print "Preparing isolinux files"
+    print "Preparing syslinux files"
         install -D "$filesdir/syslinux.cfg" -t "$isodir/boot/syslinux"
         for file in $isolinux_files; do
             install -D "/usr/lib/syslinux/$file" -t "$isodir/boot/syslinux"
@@ -180,9 +180,7 @@ make_iso()
         sed -i "s/@ISOLABEL@/$isolabel/g" "$rootfsdir/etc/tinyramfs/config" \
             || panic "Failed preparing tinyramfs"
 
-        chroot_exec "
-            kiss b tinyramfs && kiss i tinyramfs
-            debug=$debug tinyramfs -k $kernver -o /boot/initrd" \
+        chroot_exec "debug=$debug tinyramfs -k $kernver -o /boot/initrd" \
             || panic "Failed create initramfs"
         
         install -D "$rootfsdir/boot/initrd" -t "$isodir/boot" \
