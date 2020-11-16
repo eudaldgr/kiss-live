@@ -164,7 +164,8 @@ make_iso()
 
     print "Exporting pkgs"
         for _pkg in $base_pkgs; do
-            ver=$(cat $rootfsdir/var/db/kiss/installed/$_pkg/version)
+            ver=$(cat "$rootfsdir/var/db/kiss/installed/$_pkg/version")
+            # shellcheck disable=2039
             ver=${ver// /-}
             install -D "$rootfsdir/root/.cache/kiss/bin/$_pkg@$ver.tar.xz" -t "$isodir/pkgs"
         done

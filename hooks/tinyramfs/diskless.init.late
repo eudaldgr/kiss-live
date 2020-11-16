@@ -1,11 +1,11 @@
 #!/bin/sh
 
-cd /mnt/root
+(
+    cd /mnt/root || panic
 
-for _pkg in $(busybox ls /run/mount/pkgs); do
-    xz -dcT 0 "/run/mount/pkgs/$_pkg" | tar xf -
-done
-
-cd - 2>/dev/null
+    for _pkg in $(busybox ls /run/mount/pkgs); do
+        xz -dcT 0 "/run/mount/pkgs/$_pkg" | tar xf -
+    done
+)
 
 umount /run/mount
