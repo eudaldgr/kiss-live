@@ -38,9 +38,6 @@ usage: kiss-live [options ...]
 
        -s, --sources  <dir>            set sources directory
                                        default is inside chroot
-
-       -b, --binaries <dir>            set binaries directory
-                                       default is inside chroot
                                     
        -o, --output   <name>           set livecd output path
                                        default is kiss-live-$ver

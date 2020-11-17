@@ -39,7 +39,6 @@ check_depends()
 cleanup()
 {
     [ ! -z "$pkgdir" ] && umount "$rootfsdir/root/.cache/kiss/sources"
-    [ ! -z "$bindir" ] && umount "$rootfsdir/root/.cache/kiss/bin"
     [ "$debug" = 1 ]   || rm -rf "$rootfsdir" "$isodir" "$tmpdir"
 }
 
@@ -51,9 +50,6 @@ usage: ${0##*/} [options ...]
                                        default is ./build.cfg
 
        -s, --sources  <dir>            set sources directory
-                                       default is inside chroot
-
-       -b, --binaries <dir>            set binaries directory
                                        default is inside chroot
                                     
        -o, --output   <name>           set livecd output path
@@ -76,9 +72,6 @@ prepare_environment()
         ;;
         -s | --sources)
             pkgdir="${2:?}";   shift 2
-        ;;
-        -b | --binaries)
-            bindir="${2:?}";   shift 2
         ;;
         -o | --output)
             isolabel="${2:?}"; shift 2
@@ -110,11 +103,6 @@ prepare_environment()
     [ ! -z "$pkgdir" ] && {
         mkdir -p "$rootfsdir/root/.cache/kiss/sources"
         mount --bind "$pkgdir" "$rootfsdir/root/.cache/kiss/sources"
-    }
-
-    [ ! -z "$bindir" ] && {
-        mkdir -p "$rootfsdir/root/.cache/kiss/bin"
-        mount --bind "$bindir" "$rootfsdir/root/.cache/kiss/bin"
     }
 
     trap 'cleanup' EXIT INT
