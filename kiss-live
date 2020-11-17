@@ -28,7 +28,7 @@ check_depends()
 
     # shellcheck disable=2015
     if [ "$PRETTY_NAME" = "KISS Linux" ]; then
-        for _pkg in grub libisoburn squashfs-tools syslinux; do
+        for _pkg in grub libisoburn syslinux; do
             [ -d "/var/db/kiss/installed/$_pkg" ] || panic "$_pkg not installed"
         done
     else
@@ -39,7 +39,6 @@ check_depends()
 cleanup()
 {
     [ ! -z "$pkgdir" ] && umount "$rootfsdir/root/.cache/kiss/sources"
-    [ ! -z "$bindir" ] && umount "$rootfsdir/root/.cache/kiss/bin"
     [ "$debug" = 1 ]   || rm -rf "$rootfsdir" "$isodir" "$tmpdir"
 }
 
@@ -51,9 +50,6 @@ usage: ${0##*/} [options ...]
                                        default is ./build.cfg
 
        -s, --sources  <dir>            set sources directory
-                                       default is inside chroot
-
-       -b, --binaries <dir>            set binaries directory
                                        default is inside chroot
                                     
        -o, --output   <name>           set livecd output path
@@ -76,9 +72,6 @@ prepare_environment()
         ;;
         -s | --sources)
             pkgdir="${2:?}";   shift 2
-        ;;
-        -b | --binaries)
-            bindir="${2:?}";   shift 2
         ;;
         -o | --output)
             isolabel="${2:?}"; shift 2
@@ -112,11 +105,6 @@ prepare_environment()
         mount --bind "$pkgdir" "$rootfsdir/root/.cache/kiss/sources"
     }
 
-    [ ! -z "$bindir" ] && {
-        mkdir -p "$rootfsdir/root/.cache/kiss/bin"
-        mount --bind "$bindir" "$rootfsdir/root/.cache/kiss/bin"
-    }
-
     trap 'cleanup' EXIT INT
 
     # false positive
@@ -136,93 +124,58 @@ prepare_rootfs()
 
     print "Preparing rootfs enviroment"
         cp -r "$repodir"        "$rootfsdir/var/db/kiss/live"
-        install -D "$filesdir/issue"        -t "$rootfsdir/etc"
+        install -D "$filesdir/issue"        -t "$rootfsdir/root/.cache"
         install -D "$hooksdir/kiss/hooks"   -t "$rootfsdir/root/.cache"
         install -D "$filesdir/kiss-live.sh" -t "$rootfsdir/etc/profile.d"
 
         git clone "$url/repo"      "$rootfsdir/var/db/kiss/repo"
-        git clone "$url/community" "$rootfsdir/var/db/kiss/community"
-
-    print "Enable login"
-        chroot_exec "
-            echo root:root | chpasswd root"
 
     print "Updating system"
-        chroot_exec "kiss u && kiss u" || panic "Failed updating system"
+        chroot_exec "kiss u" || panic "Failed updating system"
 
-    print "Rebuild all"
-        chroot_exec "
-            cd /var/db/kiss/installed
-            kiss i * || kiss b *" \
-            || panic "Failed to rebuild system"
+        # shellcheck disable=2039
+        [ "$packages" ] && base_pkgs="$base_pkgs ${packages//,/ }"
 
-        [ "$packages" ] && {
-            echo "$packages" | sed 's/,/\\n/g' | tee -a "$rootfsdir/var/db/kiss/live/metapkg/depends"
-        }
-
-    print "Installing packages"
-        chroot_exec "kiss b metapkg && kiss i metapkg" \
-            || panic "Failed installing iso packages"
-
-    print "Enabling services"
-        chroot_exec "
-            ln -sf /usr/share/dhcpcd/hooks/10-wpa_supplicant /usr/lib/dhcpcd/dhcpcd-hooks
-            ln -sf /etc/sv/dhcpcd                            /var/service
-            ln -sf /etc/sv/mdev                              /var/service" \
-            || panic "Failed enabling services"
-
-    print "Remove orphans"
-        chroot_exec "
-            while kiss o | grep -qv metapkg; do \
-                kiss r \`kiss o | grep -v metapkg | tr '\\n' ' '\`; \
-            done
-            kiss r metapkg" \
-            || panic "Failed to remove orphans"
+    print "Build base packages"
+        for pkg in $base_pkgs tinyramfs; do
+            chroot_exec "kiss b $pkg && kiss i $pkg" || panic "Failed to build $pkg"
+        done
 }
 
 make_iso()
 {
-    print "Preparing isolinux files"
+    print "Preparing syslinux files"
         install -D "$filesdir/syslinux.cfg" -t "$isodir/boot/syslinux"
-        for file in $isolinux_files; do
+        for file in $syslinux_files; do
             install -D "/usr/lib/syslinux/$file" -t "$isodir/boot/syslinux"
         done
-    
-    print "Squashing root filesystem"
-        mksquashfs \
-            "$rootfsdir" \
-            "$isodir/kiss-rootfs.sfs" \
-            -comp xz \
-            -b 1024K \
-            -Xbcj x86 \
-            -e "$rootfsdir/etc/profile.d/kiss-live.sh" \
-            -e "$rootfsdir/var/db/kiss/community" \
-            -e "$rootfsdir/usr/share/licenses" \
-            -e "$rootfsdir/var/db/kiss/repo" \
-            -e "$rootfsdir/var/db/kiss/live" \
-            -e "$rootfsdir/boot/vmlinuz" \
-            -e "$rootfsdir/root/.cache" \
-            2>/dev/null \
-            || panic "Failed create sfs root filesystem"
-                
+
+    print "Exporting pkgs"
+        for _pkg in $base_pkgs; do
+            ver=$(cat "$rootfsdir/var/db/kiss/installed/$_pkg/version")
+            # shellcheck disable=2039
+            ver=${ver// /-}
+            install -D "$rootfsdir/root/.cache/kiss/bin/$_pkg@$ver.tar.xz" -t "$isodir/pkgs"
+        done
+
         install -D "$rootfsdir/boot/vmlinuz" -t "$isodir/boot" \
             || panic "Failed copying kernel"
 
     print "Creating initrd"
         kernver=$(file "$rootfsdir/boot/vmlinuz" | cut -d ' ' -f9)
         mkdir -p "$rootfsdir/usr/share/tinyramfs/hooks"
-        cp -r "$hooksdir/tinyramfs" "$rootfsdir/usr/share/tinyramfs/hooks/live"
+        cp -r "$hooksdir/tinyramfs" "$rootfsdir/usr/share/tinyramfs/hooks/diskless"
         install -D "$filesdir/config" -t "$rootfsdir/etc/tinyramfs"
 
         sed -i "s/@ISOLABEL@/$isolabel/g" "$rootfsdir/etc/tinyramfs/config" \
             || panic "Failed preparing tinyramfs"
 
-        chroot_exec "
-            kiss b tinyramfs && kiss i tinyramfs
-            debug=$debug tinyramfs -k $kernver -o /boot/initrd" \
+        chroot_exec "debug=$debug tinyramfs -k $kernver -o /boot/initrd" \
             || panic "Failed create initramfs"
         
-        install -D "$rootfsdir/boot/initrd" -t "$isodir/boot" \
+        xz --check=crc32 "$rootfsdir/boot/initrd"
+
+        install -D "$rootfsdir/boot/initrd.xz" -t "$isodir/boot" \
             || panic "Failed copying initrd"
     
     print "Setup grub efi"
@@ -230,14 +183,14 @@ make_iso()
         echo "set prefix=(\$root)/boot/grub"                   >> "$tmpdir/grub-early.cfg"
         install -D "$filesdir/grub.cfg" -t "$isodir/boot/grub"
 
-        mkdir -p "$isodir/efi/boot"
+        mkdir -p "$isodir/boot/efi"
         
         # false positive
         # shellcheck disable=2086
         grub-mkimage \
             --config="$tmpdir/grub-early.cfg" \
             --prefix="/boot/grub" \
-            --output="$isodir/efi/boot/bootx64.efi" \
+            --output="$isodir/boot/efi/bootx64.efi" \
             --format="x86_64-efi" \
             --compression="xz" \
             ${grub_mod}
@@ -250,7 +203,7 @@ make_iso()
         mount -o loop "$isodir/boot/grub/efi.img" "$isodir/boot/grub/efiboot" \
             || panic "Failed mount efi.img"
 
-        install -D "$isodir/efi/boot/bootx64.efi" -t "$isodir/boot/grub/efiboot/efi/boot"
+        install -D "$isodir/boot/efi/bootx64.efi" -t "$isodir/boot/grub/efiboot/boot/efi"
         umount "$isodir/boot/grub/efiboot"
         rm -rf "$isodir/boot/grub/efiboot"
 

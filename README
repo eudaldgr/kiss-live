@@ -27,7 +27,6 @@ ________________________________________________________________________________
 
 * 'grub'
 * 'libisoburn'
-* 'squashfs-tools'
 * 'syslinux'
 
 Usage
@@ -38,9 +37,6 @@ usage: kiss-live [options ...]
                                        default is ./build.cfg
 
        -s, --sources  <dir>            set sources directory
-                                       default is inside chroot
-
-       -b, --binaries <dir>            set binaries directory
                                        default is inside chroot
                                     
        -o, --output   <name>           set livecd output path

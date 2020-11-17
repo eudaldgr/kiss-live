@@ -1,0 +1,8 @@
+#!/bin/sh
+#
+# false positive
+# shellcheck disable=2154
+
+[ -h "/dev/disk/by-label/$disk_label" ] || sleep 5
+
+mount -t auto -o ro "/dev/disk/by-label/$disk_label" /run/mount || panic
