@@ -195,14 +195,14 @@ make_iso()
         echo "set prefix=(\$root)/boot/grub"                   >> "$tmpdir/grub-early.cfg"
         install -D "$filesdir/grub.cfg" -t "$isodir/boot/grub"
 
-        mkdir -p "$isodir/efi/boot"
+        mkdir -p "$isodir/boot/efi"
         
         # false positive
         # shellcheck disable=2086
         grub-mkimage \
             --config="$tmpdir/grub-early.cfg" \
             --prefix="/boot/grub" \
-            --output="$isodir/efi/boot/bootx64.efi" \
+            --output="$isodir/boot/efi/bootx64.efi" \
             --format="x86_64-efi" \
             --compression="xz" \
             ${grub_mod}
@@ -215,7 +215,7 @@ make_iso()
         mount -o loop "$isodir/boot/grub/efi.img" "$isodir/boot/grub/efiboot" \
             || panic "Failed mount efi.img"
 
-        install -D "$isodir/efi/boot/bootx64.efi" -t "$isodir/boot/grub/efiboot/efi/boot"
+        install -D "$isodir/boot/efi/bootx64.efi" -t "$isodir/boot/grub/efiboot/boot/efi"
         umount "$isodir/boot/grub/efiboot"
         rm -rf "$isodir/boot/grub/efiboot"
 

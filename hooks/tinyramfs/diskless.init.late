@@ -1,10 +1,13 @@
 #!/bin/sh
+#
+# false positive
+# shellcheck disable=2045
 
 (
     cd /mnt/root || panic
 
-    for _pkg in /run/mount/pkgs/*; do
-        xz -dcT 0 "$_pkg" | tar xf -
+    for pkg in $(ls /run/mount/pkgs); do
+        xz -dcT 0 "/run/mount/pkgs/$pkg" | tar xf -
     done
 )
 
