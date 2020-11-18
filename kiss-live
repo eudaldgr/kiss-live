@@ -120,7 +120,10 @@ prepare_rootfs()
     }
 
     print "Extracting source"
-        tar xf "$tmpdir/$tar" -C "$rootfsdir" || panic "Failed extracting source"
+        (
+            cd "$rootfsdir" || panic
+            tar xf "$tmpdir/$tar" || panic "Failed extracting source"
+        )
 
     print "Preparing rootfs enviroment"
         cp -r "$repodir"        "$rootfsdir/var/db/kiss/live"
@@ -154,8 +157,7 @@ make_iso()
         for _pkg in $base_pkgs; do
             ver=$(cat "$rootfsdir/var/db/kiss/installed/$_pkg/version")
             # shellcheck disable=2039
-            ver=${ver// /-}
-            install -D "$rootfsdir/root/.cache/kiss/bin/$_pkg@$ver.tar.xz" -t "$isodir/pkgs"
+            install -D "$rootfsdir/root/.cache/kiss/bin/$_pkg@${ver// /-}.tar.xz" -t "$isodir/pkgs"
         done
 
         install -D "$rootfsdir/boot/vmlinuz" -t "$isodir/boot" \
@@ -173,9 +175,7 @@ make_iso()
         chroot_exec "debug=$debug tinyramfs -k $kernver -o /boot/initrd" \
             || panic "Failed create initramfs"
         
-        xz --check=crc32 "$rootfsdir/boot/initrd"
-
-        install -D "$rootfsdir/boot/initrd.xz" -t "$isodir/boot" \
+        install -D "$rootfsdir/boot/initrd" -t "$isodir/boot" \
             || panic "Failed copying initrd"
     
     print "Setup grub efi"
