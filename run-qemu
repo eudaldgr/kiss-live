@@ -8,7 +8,7 @@ qemu-system-x86_64 \
     -enable-kvm \
     -cpu host \
     -smp 4 \
-    -m 2G \
+    -m 4G \
     -drive file=kiss-vm.img,if=virtio \
     -netdev user,id=vmnic,hostname=Kiss \
     -device virtio-net,netdev=vmnic \
