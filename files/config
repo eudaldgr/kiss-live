@@ -4,6 +4,6 @@ compress="xz --check=crc32"
 
 root=ram
 root_type=tmpfs
-root_opts="size=25%,mode=0755"
+root_opts="size=50%,mode=0755"
 
 disk_label=@ISOLABEL@

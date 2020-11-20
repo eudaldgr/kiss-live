@@ -45,5 +45,7 @@ usage: kiss-live [options ...]
        -p, --package  <pkg1,pkg2,...>  set packages to install
                                        default are <none>
 
+       -k, --kde                       enable K Desktop Enviroment
+
        -d, --debug                     enable debug mode
        -h, --help                      show this help

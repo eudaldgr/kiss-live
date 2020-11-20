@@ -1,0 +1,4 @@
+[ "$DISPLAY" ] || {
+    export DISPLAY=:0
+    read -r && $HOME/.local/share/bin/x
+}
