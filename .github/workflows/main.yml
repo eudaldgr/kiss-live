@@ -12,4 +12,4 @@ jobs:
     - name: Run shellcheck.
       run: |
         shopt -s nullglob
-        shellcheck kiss-live run-qemu hooks/*/* repo/*/build repo/*/post-install repo/*/pre-remove
+        shellcheck kiss-live run-qemu hooks/kiss/* repo/*/build repo/*/post-install repo/*/pre-remove
