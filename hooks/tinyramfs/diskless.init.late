@@ -1,4 +1,4 @@
-#!/bin/sh
+# vim: set ft=sh:
 #
 # false positive
 # shellcheck disable=2045

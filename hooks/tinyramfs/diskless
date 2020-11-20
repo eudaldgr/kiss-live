@@ -1,4 +1,4 @@
-#!/bin/sh
+# vim: set ft=sh:
 
 for _bin in ls tar umount xz; do
     copy_binary "$_bin"
