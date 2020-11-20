@@ -154,11 +154,10 @@ make_iso()
         done
 
     print "Exporting pkgs"
-        for _pkg in $base_pkgs; do
-            ver=$(cat "$rootfsdir/var/db/kiss/installed/$_pkg/version")
-            # shellcheck disable=2039
-            install -D "$rootfsdir/root/.cache/kiss/bin/$_pkg@${ver// /-}.tar.xz" -t "$isodir/pkgs"
-        done
+        while read -r pkg; do
+            read -r ver rel < "$rootfsdir/var/db/kiss/installed/$pkg/version"
+            install -D "$rootfsdir/root/.cache/kiss/bin/$pkg@$ver-$rel.tar.xz" -t "$isodir/pkgs"
+        done < "$base_pkgs"
 
         install -D "$rootfsdir/boot/vmlinuz" -t "$isodir/boot" \
             || panic "Failed copying kernel"
