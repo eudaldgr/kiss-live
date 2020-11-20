@@ -58,6 +58,8 @@ usage: ${0##*/} [options ...]
        -p, --package  <pkg1,pkg2,...>  set packages to install
                                        default are <none>
 
+       -k, --kde                       enable K Desktop Enviroment
+
        -d, --debug                     enable debug mode
        -h, --help                      show this help
 
@@ -78,6 +80,9 @@ prepare_environment()
         ;;
         -p | --package)
             packages="${2:?}"; shift 2
+        ;;
+        -k | --kde)
+            kde=1;   shift 1
         ;;
         -d | --debug)
             debug=1; shift 1
@@ -143,6 +148,37 @@ prepare_rootfs()
         for pkg in $base_pkgs tinyramfs; do
             chroot_exec "kiss b $pkg && kiss i $pkg" || panic "Failed to build $pkg"
         done
+}
+
+prepare_kde()
+{
+    print "Preparing kde enviroment"
+        cp "$filesdir/x"           "$rootfsdir/root/.cache/x"
+        cp "$filesdir/profile"     "$rootfsdir/root/.cache/profile"
+
+        git clone "$url/community" "$rootfsdir/var/db/kiss/community"
+        git clone "$kde_url"       "$rootfsdir/var/db/kiss/kde"
+
+        # false positive
+        # shellcheck disable=2016
+        {
+            echo 'KISS_PATH=$KISS_PATH:/var/db/kiss/repo/xorg'
+            echo 'KISS_PATH=$KISS_PATH:/var/db/kiss/community/community'
+            echo 'KISS_PATH=/var/db/kiss/kde/kde:$KISS_PATH'
+            echo 'KISS_PATH=/var/db/kiss/kde/extra:$KISS_PATH'
+            echo 'KISS_PATH=/var/db/kiss/kde/plasma:$KISS_PATH'
+            echo 'KISS_PATH=/var/db/kiss/kde/frameworks:$KISS_PATH'
+        } >> "$rootfsdir/etc/profile.d/kiss-live.sh"
+
+    print "Build kde packages"
+        chroot_exec "kiss b dbus libudev-zero" || panic "Failed to build kde"
+        chroot_exec "kiss b libinput xf86-input-libinput xorg-server" || panic "Failed to build kde"
+
+        for pkg in $kde_pkgs; do
+            chroot_exec "kiss i $pkg || kiss b $pkg && kiss i $pkg" || panic "Failed to build $pkg"
+        done
+
+        base_pkgs="$base_pkgs $kde_pkgs"
 }
 
 make_iso()
@@ -239,5 +275,6 @@ make_iso()
     check_depends
     prepare_environment "$@"
     prepare_rootfs
+    [ "$kde" = 1 ] && prepare_kde
     make_iso
 }

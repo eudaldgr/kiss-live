@@ -1,5 +1,23 @@
 #!/bin/sh -e
 
+cleanup()
+{
+    rm -rf "$DEST/usr/share/bash-completion" \
+           "$DEST/usr/share/applications" \
+           "$DEST/etc/bash_completion.d" \
+           "$DEST/usr/lib/charset.alias" \
+           "$DEST/usr/share/polkit-1" \
+           "$DEST/usr/share/gettext" \
+           "$DEST/usr/share/gtk-doc" \
+           "$DEST/usr/share/locale" \
+           "$DEST/usr/share/sounds" \
+           "$DEST/usr/share/icons" \
+           "$DEST/usr/share/info" \
+           "$DEST/usr/share/doc" \
+           "$DEST/usr/share/man" \
+           "$DEST/usr/share/zsh"
+}
+
 case $TYPE in
     post-build)
         case $PKG in
@@ -28,6 +46,11 @@ case $TYPE in
 
                 cleanup
             ;;
+            plasma-desktop)
+                mkdir -p "$DEST/root/.local/bin"
+                cp /root/.cache/profile "$DEST/root/.profile"
+                cp /root/.cache/x       "$DEST/root/.local/bin/x"
+            ;;
             *)
                 cleanup
             ;;
@@ -35,27 +58,12 @@ case $TYPE in
     ;;
     post-install)
         case $PKG in
+            plasma-desktop)
+                rm -rf /root/.profile
+            ;;
             util-linux)
                 kiss a util-linux /usr/bin/mount
             ;;
         esac
     ;;
 esac
-
-cleanup()
-{
-    rm -rf "$DEST/usr/share/bash-completion" \
-           "$DEST/usr/share/applications" \
-           "$DEST/etc/bash_completion.d" \
-           "$DEST/usr/lib/charset.alias" \
-           "$DEST/usr/share/polkit-1" \
-           "$DEST/usr/share/gettext" \
-           "$DEST/usr/share/gtk-doc" \
-           "$DEST/usr/share/locale" \
-           "$DEST/usr/share/sounds" \
-           "$DEST/usr/share/icons" \
-           "$DEST/usr/share/info" \
-           "$DEST/usr/share/doc" \
-           "$DEST/usr/share/man" \
-           "$DEST/usr/share/zsh"
-}

@@ -1,0 +1,17 @@
+#!/bin/sh
+
+trap 'exec dbus-launch --exit-with-session startplasma-x11' USR1
+
+(
+    trap '' USR1
+
+    X \
+        -ardelay 200 \
+        -arinterval 20 \
+        -dpms \
+        -nolisten tcp \
+        -quiet \
+        :0 vt1
+) &
+
+wait
