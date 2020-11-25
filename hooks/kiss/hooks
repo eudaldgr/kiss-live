@@ -19,6 +19,13 @@ cleanup()
 }
 
 case $TYPE in
+    pre-build)
+        case $PKG in
+            linux)
+                # kde sed -i 's@/sbin/hotplug@/usr/bin/helper@g' .config
+            ;;
+        esac
+    ;;
     post-build)
         case $PKG in
             baselayout) # ensure we keep layout as is
@@ -29,6 +36,17 @@ case $TYPE in
             busybox)
                 mkdir -p "$DEST/var/service"
                 ln -sf /etc/sv/mdev "$DEST/var/service/mdev"
+
+                # kde {
+                # kde     echo 'SUBSYSTEM=drm;.*   root:video 660 *env > /tmp/.libudev-zero/uevent.\$\$'
+                # kde     echo 'SUBSYSTEM=input;.* root:input 660 *env > /tmp/.libudev-zero/uevent.\$\$'
+                # kde } >> "$DEST/etc/mdev.conf"
+
+                cleanup
+            ;;
+            dbus)
+                mkdir -p "$DEST/var/service"
+                ln -sf /etc/sv/dbus "$DEST/var/service/dbus"
 
                 cleanup
             ;;
@@ -41,15 +59,23 @@ case $TYPE in
             ;;
             kiss) # ensure we keep docs
             ;;
+            libudev-zero)
+                cc contrib/helper.c -o helper
+                install -Dm755 helper "$DEST/usr/bin/helper"
+
+                cleanup
+            ;;
             linux) # save around ~5M to iso disk
                 mv "$DEST/boot/vmlinuz" /boot/vmlinuz
 
                 cleanup
             ;;
             plasma-desktop)
-                mkdir -p "$DEST/root/.local/bin"
+                mkdir -p "$DEST/root/.local/share/bin"
                 cp /root/.cache/profile "$DEST/root/.profile"
-                cp /root/.cache/x       "$DEST/root/.local/bin/x"
+                cp /root/.cache/x       "$DEST/root/.local/share/bin/x"
+
+                cleanup
             ;;
             *)
                 cleanup

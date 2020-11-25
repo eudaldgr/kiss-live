@@ -138,6 +138,10 @@ prepare_rootfs()
 
         git clone "$url/repo"      "$rootfsdir/var/db/kiss/repo"
 
+        [ "$kde" = 1 ] && {
+            sed -i 's/# kde //g' "$rootfsdir/root/.cache/hooks"
+        }
+
     print "Updating system"
         chroot_exec "kiss u" || panic "Failed updating system"
 
