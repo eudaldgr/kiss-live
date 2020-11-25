@@ -163,7 +163,7 @@ make_iso()
             || panic "Failed copying kernel"
 
     print "Creating initrd"
-        read -r -d ' ' kver < "$rootfsdir/var/db/kiss/installed/linux/version"
+        read -r kver _ < "$rootfsdir/var/db/kiss/installed/linux/version"
 
         mkdir -p "$rootfsdir/usr/share/tinyramfs/hooks"
         cp -r "$hooksdir/tinyramfs" "$rootfsdir/usr/share/tinyramfs/hooks/diskless"
