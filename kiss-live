@@ -203,7 +203,8 @@ make_iso()
             || panic "Failed copying kernel"
 
     print "Creating initrd"
-        kernver=$(file "$rootfsdir/boot/vmlinuz" | cut -d ' ' -f9)
+        read -r kver _ < "$rootfsdir/var/db/kiss/installed/linux/version"
+
         mkdir -p "$rootfsdir/usr/share/tinyramfs/hooks"
         cp -r "$hooksdir/tinyramfs" "$rootfsdir/usr/share/tinyramfs/hooks/diskless"
         install -D "$filesdir/config" -t "$rootfsdir/etc/tinyramfs"
@@ -211,7 +212,7 @@ make_iso()
         sed -i "s/@ISOLABEL@/$isolabel/g" "$rootfsdir/etc/tinyramfs/config" \
             || panic "Failed preparing tinyramfs"
 
-        chroot_exec "debug=$debug tinyramfs -k $kernver -o /boot/initrd" \
+        chroot_exec "debug=$debug tinyramfs -k $kver -o /boot/initrd" \
             || panic "Failed create initramfs"
         
         install -D "$rootfsdir/boot/initrd" -t "$isodir/boot" \
