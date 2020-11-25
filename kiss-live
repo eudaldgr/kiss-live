@@ -138,6 +138,10 @@ prepare_rootfs()
 
         git clone "$url/repo"      "$rootfsdir/var/db/kiss/repo"
 
+        [ "$kde" = 1 ] && {
+            sed -i 's/# kde //g' "$rootfsdir/root/.cache/hooks"
+        }
+
     print "Updating system"
         chroot_exec "kiss u" || panic "Failed updating system"
 
@@ -190,10 +194,10 @@ make_iso()
         done
 
     print "Exporting pkgs"
-        while read -r pkg; do
+        for pkg in $base_pkgs; do
             read -r ver rel < "$rootfsdir/var/db/kiss/installed/$pkg/version"
             install -D "$rootfsdir/root/.cache/kiss/bin/$pkg@$ver-$rel.tar.xz" -t "$isodir/pkgs"
-        done < "$base_pkgs"
+        done
 
         install -D "$rootfsdir/boot/vmlinuz" -t "$isodir/boot" \
             || panic "Failed copying kernel"
