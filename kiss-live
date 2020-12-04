@@ -28,8 +28,8 @@ check_depends()
 
     # shellcheck disable=2015
     if [ "$PRETTY_NAME" = "KISS Linux" ]; then
-        for _pkg in grub libisoburn syslinux; do
-            [ -d "/var/db/kiss/installed/$_pkg" ] || panic "$_pkg not installed"
+        for deps in grub libisoburn syslinux; do
+            [ -d "/var/db/kiss/installed/$deps" ] || panic "$deps not installed"
         done
     else
         print "Distro not supported, errors may be expected."; sleep 5;
@@ -156,6 +156,24 @@ prepare_rootfs()
 
 prepare_kde()
 {
+
+    print "Exporting base pkgs"
+        for pkg in $base_pkgs; do
+            read -r ver rel < "$rootfsdir/var/db/kiss/installed/$pkg/version"
+            install -D "$rootfsdir/root/.cache/kiss/bin/$pkg@$ver-$rel.tar.xz" -t "$isodir/pkgs"
+        done
+
+    [ ! -f "$tmpdir/$kde_tar" ] && {
+        print "Downloading source"
+            curl -L "$kde_dl" -o "$tmpdir/$kde_tar" || panic "Failed downloading source"
+    }
+
+    print "Extracting source"
+        (
+            cd "$rootfsdir" || panic
+            tar xf "$tmpdir/$kde_tar" || panic "Failed extracting source"
+        )
+
     print "Preparing kde enviroment"
         cp "$filesdir/x"           "$rootfsdir/root/.cache/x"
         cp "$filesdir/profile"     "$rootfsdir/root/.cache/profile"
@@ -175,14 +193,17 @@ prepare_kde()
         } >> "$rootfsdir/etc/profile.d/kiss-live.sh"
 
     print "Build kde packages"
-        chroot_exec "kiss b dbus libudev-zero" || panic "Failed to build kde"
-        chroot_exec "kiss b libinput xf86-input-libinput xorg-server" || panic "Failed to build kde"
+        chroot_exec "
+            kiss b dbus libudev-zero
+            kiss b libinput xf86-input-libinput xorg-server
+            kiss b dolphin hack konsole xf86-video-amdgpu xf86-video-ati xf86-video-intel xf86-video-nouveau xf86-video-vesa xf86-video-fbdev
+            kiss b plasma-desktop" || panic "Failed to build kde"
 
         for pkg in $kde_pkgs; do
-            chroot_exec "kiss i $pkg || kiss b $pkg && kiss i $pkg" || panic "Failed to build $pkg"
+            chroot_exec "cd ~/.cache/kiss/bin && kiss-export $pkg" || panic "Failed to export $pkg"
         done
 
-        base_pkgs="$base_pkgs $kde_pkgs"
+        base_pkgs="$kde_pkgs"
 }
 
 make_iso()
