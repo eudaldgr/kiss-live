@@ -38,8 +38,8 @@ check_depends()
 
 cleanup()
 {
-    [ ! -z "$pkgdir" ] && umount "$rootfsdir/root/.cache/kiss/sources"
-    [ "$debug" = 1 ]   || rm -rf "$rootfsdir" "$isodir" "$tmpdir"
+    [ -n "$pkgdir" ] && umount "$rootfsdir/root/.cache/kiss/sources"
+    [ "$debug" = 1 ] || rm -rf "$rootfsdir" "$isodir" "$tmpdir"
 }
 
 usage()
@@ -100,7 +100,7 @@ prepare_environment()
     rm    -rf "$rootfsdir" "$isodir" #"$tmpdir"
     mkdir -p  "$rootfsdir" "$isodir" "$tmpdir"
 
-    [ ! -z "$pkgdir" ] && {
+    [ -n "$pkgdir" ] && {
         mkdir -p "$rootfsdir/root/.cache/kiss/sources"
         mount --bind "$pkgdir" "$rootfsdir/root/.cache/kiss/sources"
     }
